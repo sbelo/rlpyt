@@ -18,8 +18,18 @@ from reward_shaping import observer_reward_shaping_cartpole,player_reward_shapin
 from rlpyt.cwto_samplers.parallel.cpu.collectors import CpuEvalCollector
 from rlpyt.cwto_samplers.serial.collectors import SerialEvalCollector
 
-def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5):
+def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent"):
     # def envs:
+    if observation_mode == "agent":
+        fully_obs = False
+        rand_obs = False
+    elif observation_mode == "random":
+        fully_obs = False
+        rand_obs = True
+    elif observation_mode == "full":
+        fully_obs = True
+        rand_obs = False
+
     n_serial = None
     if game == "cartpole":
         work_env = gym.make
@@ -79,7 +89,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         else:
             eval_collector_cl = None
         print(f"Using CPU parallel sampler (agent in workers), {gpu_cpu} for optimizing.")
-    env_kwargs = dict(work_env=work_env,env_name=env_name,obs_spaces=[obs_space,obs_space],action_spaces=[player_act_space,observer_act_space],serial=serial,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping)
+    env_kwargs = dict(work_env=work_env,env_name=env_name,obs_spaces=[obs_space,obs_space],action_spaces=[player_act_space,observer_act_space],serial=serial,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,fully_obs=fully_obs,rand_obs=rand_obs)
     if eval:
         eval_env_kwargs = env_kwargs
         eval_max_steps = 1e4
@@ -138,7 +148,7 @@ if __name__ == "__main__":
     import wandb
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--game', help='name of env', default='hiv', choices=['cartpole','hiv'])
+    parser.add_argument('--game', help='name of env', default='hiv', type=str, choices=['cartpole','hiv'])
     parser.add_argument('--run_ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda_idx', help='gpu to use ', type=int, default=None)
     parser.add_argument('--secondary_cuda_idx', help='gpu to use - for parallel work', type=int, default=None)
@@ -154,6 +164,7 @@ if __name__ == "__main__":
     parser.add_argument('--wandb_run_name', help='wandb run name', type=str, default=None)
     parser.add_argument('--wandb_save_models', help='save models to wandb', type=bool, default=False)
     parser.add_argument('--log_interval_steps', help='interval between logs', type=int, default=1e5)
+    parser.add_argument('--obs_mode', help='choice of observations', default='agent', type=str, choices=['agent','random','full'])
     args = parser.parse_args()
     if args.wandb:
         wandb.init(project=args.wandb_project,name=args.wandb_run_name)
@@ -175,5 +186,6 @@ if __name__ == "__main__":
         train_mask=[args.train_mask_ply,args.train_mask_obs],
         wandb_log = args.wandb,
         save_models_to_wandb=args.wandb_save_models,
-        log_interval_steps=args.log_interval_steps
+        log_interval_steps=args.log_interval_steps,
+        observation_mode=args.obs_mode
     )
