@@ -1,4 +1,4 @@
-from rlpyt.agents.categorical import (CategoricalPgAgent,
+from rlpyt.agents.pg.categorical import (CategoricalPgAgent,
     RecurrentCategoricalPgAgent, AlternatingRecurrentCategoricalPgAgent)
 from rlpyt.cwto_models.cwto_model import CWTO_LstmModel
 
