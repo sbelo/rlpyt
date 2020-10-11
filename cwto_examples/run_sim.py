@@ -5,6 +5,7 @@ from rlpyt.cwto_runners.minibatch_rl import MinibatchRl, MinibatchRlEval
 from rlpyt.utils.logging.context import logger_context
 from rlpyt.spaces.int_box import IntBox
 import os
+import torch
 import gym
 import whynot as wn
 from gym.spaces.box import Box
@@ -34,6 +35,8 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         max_decor_steps = 20
         b_size = 20
         num_envs = 16
+        player_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+        observer_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
 
     elif game == "hiv":
         work_env = wn.gym.make
@@ -47,6 +50,8 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         max_decor_steps = 100
         b_size = 200
         num_envs = 16
+        player_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+        observer_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
 
     if serial:
         n_serial = int(len(state_space_high) / 2)
@@ -100,12 +105,8 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
 
     player_algo = PPO()
     observer_algo = PPO()
-    if sample_mode == "alternating":
-        player = CWTO_AlternatingLstmAgent(ModelCls=player_model, model_kwargs=None, initial_model_state_dict=None)
-        observer = CWTO_AlternatingLstmAgent(ModelCls=observer_model, model_kwargs=None, initial_model_state_dict=None)
-    else:
-        player = CWTO_LstmAgent(ModelCls=player_model, model_kwargs=None, initial_model_state_dict=None)
-        observer = CWTO_LstmAgent(ModelCls=observer_model, model_kwargs=None, initial_model_state_dict=None)
+    player = CWTO_LstmAgent(ModelCls=player_model, model_kwargs=player_model_kwargs, initial_model_state_dict=None)
+    observer = CWTO_LstmAgent(ModelCls=observer_model, model_kwargs=observer_model_kwargs, initial_model_state_dict=None)
     agent = CWTO_AgentWrapper(player,observer,serial=serial,n_serial=n_serial,alt=alt, train_mask=train_mask)
 
     if eval:
