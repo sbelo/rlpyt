@@ -3,6 +3,7 @@ from gym import Wrapper
 from gym.wrappers.time_limit import TimeLimit
 from rlpyt.envs.base import EnvSpaces, EnvStep
 from rlpyt.spaces.gym_wrapper import GymSpaceWrapper
+import random
 
 
 def obs_action_translator(action,power_vec,dim_obs):
@@ -18,7 +19,7 @@ def reward_shaping_ph(reward):
 
 
 class CWTO_EnvWrapper(Wrapper):
-    def __init__(self,work_env,env_name,obs_spaces,action_spaces,serial,force_float32=True,act_null_value=[0,0],obs_null_value=[0,0],player_reward_shaping=None,observer_reward_shaping=None):
+    def __init__(self,work_env,env_name,obs_spaces,action_spaces,serial,force_float32=True,act_null_value=[0,0],obs_null_value=[0,0],player_reward_shaping=None,observer_reward_shaping=None,fully_obs=False,rand_obs=False):
         env = work_env(env_name)
         super().__init__(env)
         o = self.env.reset()
@@ -45,12 +46,14 @@ class CWTO_EnvWrapper(Wrapper):
         )
         del self.action_space
         del self.observation_space
+        self.fully_obs = fully_obs
+        self.rand_obs = rand_obs
         self.player_turn = False
         self.serial = serial
         self.last_done = False
         self.last_reward = 0
         self.last_info = {}
-        self.obs_action_translator = obs_action_translator
+        # self.obs_action_translator = obs_action_translator
         if player_reward_shaping is None:
             self.player_reward_shaping = reward_shaping_ph
         else:
@@ -123,6 +126,10 @@ class CWTO_EnvWrapper(Wrapper):
         else:
             r_action = self.observer_action_space.revert(action)
             if self.serial:
+                if self.fully_obs:
+                    r_action = 1
+                elif self.rand_obs:
+                    r_action = random.randint(0,1)
                 self.ser_cum_act[self.ser_counter] = r_action
                 self.ser_counter += 1
                 if self.ser_counter == self.obs_size:
@@ -148,6 +155,10 @@ class CWTO_EnvWrapper(Wrapper):
 
             else:
                 r_action = self.obs_action_translator(r_action, self.power_vec, self.obs_size)
+                if self.fully_obs:
+                    r_action = np.ones(r_action.shape)
+                elif self.rand_obs:
+                    r_action = np.random.randint(0,2,r_action.shape)
                 self.player_turn = True
                 self.last_obs_act = r_action
                 masked_obs = np.multiply(np.reshape(r_action, self.last_obs.shape), self.last_obs)
@@ -193,4 +204,10 @@ class CWTO_EnvWrapper(Wrapper):
             return self.player_observation_space
         else:
             return self.observer_observation_space
+
+    def set_fully_observable(self):
+        self.fully_obs = True
+
+    def set_random_observation(self):
+        self.rand_obs = True
 
