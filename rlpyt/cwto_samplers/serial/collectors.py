@@ -25,7 +25,7 @@ class SerialEvalCollector(BaseEvalCollector):
 
     def collect_evaluation(self, itr):
         player_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
-        observer_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
+        observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
         player_completed_traj_infos = list()
         observer_completed_traj_infos = list()
         observer_observations = list()
@@ -60,10 +60,10 @@ class SerialEvalCollector(BaseEvalCollector):
                         #     r_obs = r
 
                         observer_traj_infos[b].step(observer_observation[b], observer_action[b], r_obs, d,
-                                           observer_agent_info[b], env_info, cost_obs)
+                                           observer_agent_info[b], env_info, cost=cost_obs, obs_act=env.last_obs_act)
                         if getattr(env_info, "traj_done", d):
                             observer_completed_traj_infos.append(observer_traj_infos[b].terminate(o))
-                            observer_traj_infos[b] = self.TrajInfoCls()
+                            observer_traj_infos[b] = self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial)
 
                             # if env.player_reward_shaping is not None:
                             r_ply, cost_ply = env.player_reward_shaping(r, env.last_obs_act)
@@ -106,7 +106,7 @@ class SerialEvalCollector(BaseEvalCollector):
 
                             else:
                                 observer_traj_infos[b].step(observer_observation[b], observer_action[b], r, d,
-                                                                        observer_agent_info[b], env_info, 0)
+                                                                        observer_agent_info[b], env_info, cost=0)
                                 observer_observation[b] = o
                                 observer_reward[b] = r
 

@@ -89,7 +89,7 @@ class DecorrelatingStartCollector(BaseCollector):
         resulting agent_inputs buffer (`observation`, `prev_action`,
         `prev_reward`)."""
         player_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
-        observer_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
+        observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
         player_observations = list()
         observer_observations = list()
         for env in self.envs:
@@ -132,11 +132,11 @@ class DecorrelatingStartCollector(BaseCollector):
                         observer_prev_cost[b] = cost_obs
                         observer_done[b] = d
                         if cstep > 0:
-                            observer_traj_infos[b].step(observer_observation[b], observer_prev_action[b], observer_prev_reward[b], observer_done[b], None, info, cost_obs)
+                            observer_traj_infos[b].step(observer_observation[b], observer_prev_action[b], observer_prev_reward[b], observer_done[b], None, info, cost=cost_obs, obs_act=env.last_obs_act)
                         if d:
                             o = env.reset()
                             observer_prev_reward[b] = 0
-                            observer_traj_infos[b] = self.TrajInfoCls()
+                            observer_traj_infos[b] = self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial)
                             player_prev_reward[b] = 0
                             player_traj_infos[b] = self.TrajInfoCls()
                             player_done[b] = d
@@ -162,7 +162,7 @@ class DecorrelatingStartCollector(BaseCollector):
                                     observer_done[b] = d
                                     if cstep > 0:
                                         observer_traj_infos[b].step(observer_observation[b], observer_prev_action[b],
-                                                                  observer_prev_reward[b], observer_done[b], None, info, 0)
+                                                                  observer_prev_reward[b], observer_done[b], None, info, cost=0)
                                     observer_observation[b] = o
 
                         else:

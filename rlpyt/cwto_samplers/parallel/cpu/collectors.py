@@ -67,10 +67,10 @@ class CpuResetCollector(DecorrelatingStartCollector):
                     # else:
                     #     r_obs = r
                     observer_traj_infos[b].step(observer_observation[b], observer_action[b], r_obs, d,
-                                                observer_agent_info[b], env_info, cost_obs)
+                                                observer_agent_info[b], env_info, cost=cost_obs, obs_act=env.last_obs_act)
                     if getattr(env_info, "traj_done", d):
                         observer_completed_infos.append(observer_traj_infos[b].terminate(o))
-                        observer_traj_infos[b] = self.TrajInfoCls()
+                        observer_traj_infos[b] = self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial)
                         # if env.player_reward_shaping is not None:
                         r_ply, cost_ply = env.player_reward_shaping(r, env.last_obs_act)
                         # else:
@@ -131,7 +131,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
                             player_observation[b] = o
                         else:
                             # no shaping here - it will be included in "player_turn", also, cost = 0
-                            observer_traj_infos[b].step(observer_observation[b], observer_action[b], r, d, observer_agent_info[b], env_info, 0)
+                            observer_traj_infos[b].step(observer_observation[b], observer_action[b], r, d, observer_agent_info[b], env_info, cost=0)
                             observer_observation[b] = o
                             observer_reward[b] = r
                             observer_env_buf.done[ser_count, b] = d
@@ -164,7 +164,7 @@ class CpuEvalCollector(BaseEvalCollector):
     """
 
     def collect_evaluation(self, itr):
-        observer_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
+        observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
         player_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
         observer_observations = list()
         player_observations = list()
@@ -197,10 +197,10 @@ class CpuEvalCollector(BaseEvalCollector):
                         r_obs, cost_obs = env.observer_reward_shaping(r,env.last_obs_act)
                         # else:
                         #     r_obs = r
-                        observer_traj_infos[b].step(observer_observation[b], observer_action[b], r_obs, d, observer_agent_info[b], env_info, cost_obs)
+                        observer_traj_infos[b].step(observer_observation[b], observer_action[b], r_obs, d, observer_agent_info[b], env_info, cost=cost_obs, obs_act=env.last_obs_act)
                         if getattr(env_info, "traj_done", d):
                             self.observer_traj_infos_queue.put(observer_traj_infos[b].terminate(o))
-                            observer_traj_infos[b] = self.TrajInfoCls()
+                            observer_traj_infos[b] = self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial)
                             o = env.reset()
                             prev_reset[b] = True
                             # if env.player_reward_shaping is not None:
@@ -239,7 +239,7 @@ class CpuEvalCollector(BaseEvalCollector):
                                 player_observation[b] = o
 
                             else:
-                                observer_traj_infos[b].step(observer_observation[b], observer_action[b], r, d, observer_agent_info[b], env_info, 0)
+                                observer_traj_infos[b].step(observer_observation[b], observer_action[b], r, d, observer_agent_info[b], env_info, cost=0)
                                 observer_observation[b] = o
                                 observer_reward[b] = r
                 if self.player_sync.stop_eval.value:

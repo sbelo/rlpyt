@@ -2,7 +2,7 @@
 from collections import namedtuple
 
 from rlpyt.utils.collections import namedarraytuple, AttrDict
-
+import numpy as np
 
 Samples = namedarraytuple("Samples", ["agent", "env"])
 
@@ -37,7 +37,7 @@ class TrajInfo(AttrDict):
 
     _discount = 1  # Leading underscore, but also class attr not in self.__dict__.
 
-    def __init__(self, **kwargs):
+    def __init__(self, n_obs=None, serial=False, **kwargs):
         super().__init__(**kwargs)  # (for AttrDict behavior)
         self.Length = 0
         self.Return = 0
@@ -45,14 +45,33 @@ class TrajInfo(AttrDict):
         self.DiscountedReturn = 0
         self._cur_discount = 1
         self.TotalCost = 0
+        if n_obs is not None:
+            self._serial = serial
+            self._n_obs = n_obs
+            for i in range(n_obs):
+                setattr(self,"ObsPercentFeature" + str(i+1),0)
+            self.OverAllObsPercent = 0
 
-    def step(self, observation, action, reward, done, agent_info, env_info, cost=0):
+
+    def step(self, observation, action, reward, done, agent_info, env_info, cost=0, obs_act=None):
         self.Length += 1
         self.Return += reward
         self.NonzeroRewards += reward != 0
         self.DiscountedReturn += self._cur_discount * reward
         self._cur_discount *= self._discount
         self.TotalCost += cost
+        if obs_act is not None:
+            self.OverAllObsPercent += np.sum(obs_act) / self._n_obs
+            for i in range(self._n_obs):
+                setattr(self,"ObsPercentFeature" + str(i+1),getattr(self,"ObsPercentFeature" + str(i+1)) + obs_act[i])
 
     def terminate(self, observation):
+        if hasattr(self,"OverAllObsPercent"):
+            if self._serial:
+                length = self.Length / self._n_obs
+            else:
+                length = self.Length
+            self.OverAllObsPercent = 100*self.OverAllObsPercent / length
+            for i in range(self._n_obs):
+                setattr(self, "ObsPercentFeature" + str(i + 1), 100*getattr(self, "ObsPercentFeature" + str(i + 1)) / length)
         return self
