@@ -19,10 +19,11 @@ def reward_shaping_ph(reward):
 
 
 class CWTO_EnvWrapper(Wrapper):
-    def __init__(self,work_env,env_name,obs_spaces,action_spaces,serial,force_float32=True,act_null_value=[0,0],obs_null_value=[0,0],player_reward_shaping=None,observer_reward_shaping=None,fully_obs=False,rand_obs=False):
+    def __init__(self,work_env,env_name,obs_spaces,action_spaces,serial,force_float32=True,act_null_value=[0,0],obs_null_value=[0,0],player_reward_shaping=None,observer_reward_shaping=None,fully_obs=False,rand_obs=False,inc_player_last_act=False):
         env = work_env(env_name)
         super().__init__(env)
         o = self.env.reset()
+        self.inc_player_last_act = inc_player_last_act
         o, r, d, info = self.env.step(self.env.action_space.sample())
         env_ = self.env
         time_limit = isinstance(self.env, TimeLimit)
@@ -100,12 +101,13 @@ class CWTO_EnvWrapper(Wrapper):
                 a = a.item()
             o, r, d, info = self.env.step(a)
             self.last_obs = o
-
+            self.last_action = a
             if self.serial:
                 obs = np.concatenate([np.zeros(self.last_obs_act.shape), self.last_masked_obs])
             else:
                 obs = np.concatenate([self.last_obs_act, self.last_masked_obs])
-
+            if self.inc_player_last_act:
+                obs = np.append(obs,a)
             obs = self.observer_observation_space.convert(obs)
             if self.time_limit:
                 if "TimeLimit.truncated" in info:
@@ -150,6 +152,9 @@ class CWTO_EnvWrapper(Wrapper):
                     r = 0
                     info = (False)
                     obs = np.concatenate([np.reshape(self.ser_cum_act, self.last_masked_obs.shape),self.last_masked_obs])
+                    if self.inc_player_last_act:
+                        obs = np.append(obs, self.last_action)
+
                     obs = self.observer_observation_space.convert(obs)
                     d = False
 
@@ -177,6 +182,7 @@ class CWTO_EnvWrapper(Wrapper):
     def reset(self):
         self.last_done = False
         self.last_reward = 0
+        self.last_action = self.player_action_space.revert(self.player_action_space.null_value())
         if self.serial:
             self.ser_cum_act = np.zeros(self.env.observation_space.shape)
             self.ser_counter = 0
@@ -184,6 +190,8 @@ class CWTO_EnvWrapper(Wrapper):
         o = self.env.reset()
         self.last_obs = o
         obs = np.concatenate([np.zeros(o.shape),np.zeros(o.shape)])
+        if self.inc_player_last_act:
+            obs = np.append(obs,self.last_action) 
         self.last_obs_act = np.zeros(o.shape)
         self.last_masked_obs = np.zeros(o.shape)
         obs = self.observer_observation_space.convert(obs)
