@@ -125,7 +125,7 @@ class CWTO_EnvWrapper(Wrapper):
             # if (not d) and (self.observer_reward_shaping is not None):
             #     r = self.observer_reward_shaping(r,self.last_obs_act)
             self.curr_episode_length += 1
-            if self.curr_episode_length > self.max_episode_length:
+            if self.curr_episode_length >= self.max_episode_length:
                 d = True
             self.last_done = d
             return EnvStep(obs, r, d, info)
