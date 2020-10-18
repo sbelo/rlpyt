@@ -18,7 +18,7 @@ from reward_shaping import observer_reward_shaping_cartpole,player_reward_shapin
 from rlpyt.cwto_samplers.parallel.cpu.collectors import CpuEvalCollector
 from rlpyt.cwto_samplers.serial.collectors import SerialEvalCollector
 
-def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent"):
+def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent", inc_player_last_act=False):
     # def envs:
     if observation_mode == "agent":
         fully_obs = False
@@ -40,6 +40,11 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         obs_space = Box(state_space_low, state_space_high, dtype=np.float32)
         player_act_space = work_env(env_name).action_space
         player_act_space.shape = (1,)
+        print(player_act_space)
+        if inc_player_last_act:
+            observer_obs_space = Box(np.append(state_space_low,0), np.append(state_space_high,1), dtype=np.float32)
+        else:
+            observer_obs_space = obs_space
         player_reward_shaping = player_reward_shaping_cartpole
         observer_reward_shaping = observer_reward_shaping_cartpole
         max_decor_steps = 20
@@ -55,6 +60,10 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         state_space_high = np.asarray([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
         obs_space = Box(state_space_low, state_space_high, dtype=np.float32)
         player_act_space = work_env(env_name).action_space
+        if inc_player_last_act:
+            observer_obs_space = Box(np.append(state_space_low,0), np.append(state_space_high,3), dtype=np.float32)
+        else:
+            observer_obs_space = obs_space
         player_reward_shaping = player_reward_shaping_hiv
         observer_reward_shaping = observer_reward_shaping_hiv
         max_decor_steps = 100
@@ -89,7 +98,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         else:
             eval_collector_cl = None
         print(f"Using CPU parallel sampler (agent in workers), {gpu_cpu} for optimizing.")
-    env_kwargs = dict(work_env=work_env,env_name=env_name,obs_spaces=[obs_space,obs_space],action_spaces=[player_act_space,observer_act_space],serial=serial,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,fully_obs=fully_obs,rand_obs=rand_obs)
+    env_kwargs = dict(work_env=work_env,env_name=env_name,obs_spaces=[obs_space,observer_obs_space],action_spaces=[player_act_space,observer_act_space],serial=serial,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,fully_obs=fully_obs,rand_obs=rand_obs,inc_player_last_act=inc_player_last_act)
     if eval:
         eval_env_kwargs = env_kwargs
         eval_max_steps = 1e4
@@ -165,6 +174,7 @@ if __name__ == "__main__":
     parser.add_argument('--wandb_save_models', help='save models to wandb', type=bool, default=False)
     parser.add_argument('--log_interval_steps', help='interval between logs', type=int, default=1e5)
     parser.add_argument('--obs_mode', help='choice of observations', default='agent', type=str, choices=['agent','random','full'])
+    parser.add_argument('--inc_player_last_act', help='include player action in observer observation', type=bool, default=False)
     args = parser.parse_args()
     if args.wandb:
         wandb.init(project=args.wandb_project,name=args.wandb_run_name)
@@ -187,5 +197,6 @@ if __name__ == "__main__":
         wandb_log = args.wandb,
         save_models_to_wandb=args.wandb_save_models,
         log_interval_steps=args.log_interval_steps,
-        observation_mode=args.obs_mode
+        observation_mode=args.obs_mode,
+        inc_player_last_act = args.inc_player_last_act
     )
