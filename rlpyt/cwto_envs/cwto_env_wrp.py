@@ -19,11 +19,13 @@ def reward_shaping_ph(reward):
 
 
 class CWTO_EnvWrapper(Wrapper):
-    def __init__(self,work_env,env_name,obs_spaces,action_spaces,serial,force_float32=True,act_null_value=[0,0],obs_null_value=[0,0],player_reward_shaping=None,observer_reward_shaping=None,fully_obs=False,rand_obs=False,inc_player_last_act=False):
+    def __init__(self,work_env,env_name,obs_spaces,action_spaces,serial,force_float32=True,act_null_value=[0,0],obs_null_value=[0,0],player_reward_shaping=None,observer_reward_shaping=None,fully_obs=False,rand_obs=False,inc_player_last_act=False,max_episode_length=np.inf):
         env = work_env(env_name)
         super().__init__(env)
         o = self.env.reset()
         self.inc_player_last_act = inc_player_last_act
+        self.max_episode_length = max_episode_length
+        self.curr_episode_length = 0
         o, r, d, info = self.env.step(self.env.action_space.sample())
         env_ = self.env
         time_limit = isinstance(self.env, TimeLimit)
@@ -122,6 +124,9 @@ class CWTO_EnvWrapper(Wrapper):
             self.last_reward = r
             # if (not d) and (self.observer_reward_shaping is not None):
             #     r = self.observer_reward_shaping(r,self.last_obs_act)
+            self.curr_episode_length += 1
+            if self.curr_episode_length > self.max_episode_length:
+                d = True
             self.last_done = d
             return EnvStep(obs, r, d, info)
 
@@ -180,6 +185,7 @@ class CWTO_EnvWrapper(Wrapper):
 
 
     def reset(self):
+        self.curr_episode_length = 0
         self.last_done = False
         self.last_reward = 0
         self.last_action = self.player_action_space.revert(self.player_action_space.null_value())
