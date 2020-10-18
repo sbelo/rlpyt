@@ -18,7 +18,7 @@ from reward_shaping import observer_reward_shaping_cartpole,player_reward_shapin
 from rlpyt.cwto_samplers.parallel.cpu.collectors import CpuEvalCollector
 from rlpyt.cwto_samplers.serial.collectors import SerialEvalCollector
 
-def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent", inc_player_last_act=False):
+def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent", inc_player_last_act=False, alt_train=False):
     # def envs:
     if observation_mode == "agent":
         fully_obs = False
@@ -50,6 +50,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         max_decor_steps = 20
         b_size = 20
         num_envs = 16
+        max_episode_length = np.inf
         player_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
         observer_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
 
@@ -69,6 +70,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         max_decor_steps = 100
         b_size = 200
         num_envs = 16
+        max_episode_length = 100
         player_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
         observer_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
 
@@ -98,7 +100,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         else:
             eval_collector_cl = None
         print(f"Using CPU parallel sampler (agent in workers), {gpu_cpu} for optimizing.")
-    env_kwargs = dict(work_env=work_env,env_name=env_name,obs_spaces=[obs_space,observer_obs_space],action_spaces=[player_act_space,observer_act_space],serial=serial,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,fully_obs=fully_obs,rand_obs=rand_obs,inc_player_last_act=inc_player_last_act)
+    env_kwargs = dict(work_env=work_env,env_name=env_name,obs_spaces=[obs_space,observer_obs_space],action_spaces=[player_act_space,observer_act_space],serial=serial,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,fully_obs=fully_obs,rand_obs=rand_obs,inc_player_last_act=inc_player_last_act,max_episode_length=max_episode_length)
     if eval:
         eval_env_kwargs = env_kwargs
         eval_max_steps = 1e4
@@ -141,7 +143,8 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         n_steps=50e6,
         log_interval_steps=log_interval_steps,
         affinity=affinity,
-        wandb_log=wandb_log
+        wandb_log=wandb_log,
+        alt_train=alt_train
     )
     config = dict(domain=game)
     name = "ppo_" + game
@@ -175,6 +178,7 @@ if __name__ == "__main__":
     parser.add_argument('--log_interval_steps', help='interval between logs', type=int, default=1e5)
     parser.add_argument('--obs_mode', help='choice of observations', default='agent', type=str, choices=['agent','random','full'])
     parser.add_argument('--inc_player_last_act', help='include player action in observer observation', type=bool, default=False)
+    parser.add_argument('--alt_train', help='each time only one agent optimized', type=bool, default=False)
     args = parser.parse_args()
     if args.wandb:
         wandb.init(project=args.wandb_project,name=args.wandb_run_name)
@@ -198,5 +202,6 @@ if __name__ == "__main__":
         save_models_to_wandb=args.wandb_save_models,
         log_interval_steps=args.log_interval_steps,
         observation_mode=args.obs_mode,
-        inc_player_last_act = args.inc_player_last_act
+        inc_player_last_act=args.inc_player_last_act,
+        alt_train=args.alt_train
     )
