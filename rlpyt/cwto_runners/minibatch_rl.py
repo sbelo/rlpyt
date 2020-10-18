@@ -42,6 +42,7 @@ class MinibatchRlBase(BaseRunner):
             affinity=None,
             log_interval_steps=1e5,
             wandb_log=False,
+            alt_train=False
             ):
         n_steps = int(n_steps)
         log_interval_steps = int(log_interval_steps)
@@ -371,10 +372,16 @@ class MinibatchRl(MinibatchRlBase):
                 self.agent.train_mode(itr)
                 player_opt_info = ()
                 observer_opt_info = ()
-                if self.agent.train_mask[0]:
-                    player_opt_info = self.player_algo.optimize_agent(itr, player_samples)
-                if self.agent.train_mask[1]:
-                    observer_opt_info = self.observer_algo.optimize_agent(itr, observer_samples)
+                if self.alt_train:
+                    if self.agent.train_mask[0] and (itr % 2 == 0):
+                        player_opt_info = self.player_algo.optimize_agent(itr // 2, player_samples)
+                    elif self.agent.train_mask[1]:
+                        observer_opt_info = self.observer_algo.optimize_agent(itr // 2, observer_samples)
+                else:
+                    if self.agent.train_mask[0]:
+                        player_opt_info = self.player_algo.optimize_agent(itr, player_samples)
+                    if self.agent.train_mask[1]:
+                        observer_opt_info = self.observer_algo.optimize_agent(itr, observer_samples)
                 self.store_diagnostics(itr, player_traj_infos, observer_traj_infos, player_opt_info, observer_opt_info)
                 if (itr + 1) % self.log_interval_itrs == 0:
                     if self.wandb_log:
@@ -438,10 +445,16 @@ class MinibatchRlEval(MinibatchRlBase):
                 self.agent.train_mode(itr)
                 player_opt_info = ()
                 observer_opt_info = ()
-                if self.agent.train_mask[0]:
-                    player_opt_info = self.player_algo.optimize_agent(itr, player_samples)
-                if self.agent.train_mask[1]:
-                    observer_opt_info = self.observer_algo.optimize_agent(itr, observer_samples)
+                if self.alt_train:
+                    if self.agent.train_mask[0] and (itr % 2 == 0):
+                        player_opt_info = self.player_algo.optimize_agent(itr // 2, player_samples)
+                    elif self.agent.train_mask[1]:
+                        observer_opt_info = self.observer_algo.optimize_agent(itr // 2, observer_samples)
+                else:
+                    if self.agent.train_mask[0]:
+                        player_opt_info = self.player_algo.optimize_agent(itr, player_samples)
+                    if self.agent.train_mask[1]:
+                        observer_opt_info = self.observer_algo.optimize_agent(itr, observer_samples)
                 self.store_diagnostics(itr, player_traj_infos, observer_traj_infos, player_opt_info, observer_opt_info)
                 if (itr + 1) % self.log_interval_itrs == 0:
                     player_eval_traj_infos, observer_eval_traj_infos, eval_time = self.evaluate_agent(itr)
