@@ -182,18 +182,18 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
             observer_actions.append(np.array([obs_action_translator(act, eval_envs[0].power_vec, eval_envs[0].obs_size) for act in traj.Actions]))
 
         # save results:
-            open_obs = open('eval_observations.pkl',"wb")
-            pickle.dump(observations,open_obs)
-            open_obs.close()
-            open_ret = open('eval_returns.pkl',"wb")
-            pickle.dump(returns,open_ret)
-            open_ret.close()
-            open_pact = open('eval_player_actions.pkl',"wb")
-            pickle.dump(player_actions,open_pact)
-            open_pact.close()
-            open_oact = open('eval_observer_actions.pkl',"wb")
-            pickle.dump(observer_actions,open_oact)
-            open_oact.close()
+        open_obs = open('eval_observations.pkl',"wb")
+        pickle.dump(observations,open_obs)
+        open_obs.close()
+        open_ret = open('eval_returns.pkl',"wb")
+        pickle.dump(returns,open_ret)
+        open_ret.close()
+        open_pact = open('eval_player_actions.pkl',"wb")
+        pickle.dump(player_actions,open_pact)
+        open_pact.close()
+        open_oact = open('eval_observer_actions.pkl',"wb")
+        pickle.dump(observer_actions,open_oact)
+        open_oact.close()
 
 if __name__ == "__main__":
     import argparse
