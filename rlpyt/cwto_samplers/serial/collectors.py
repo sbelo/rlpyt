@@ -20,6 +20,7 @@ class SerialEvalCollector(BaseEvalCollector):
             TrajInfoCls,
             max_T,
             max_trajectories=None,
+            log_full_obs=False
             ):
         save__init__args(locals())
 
@@ -119,11 +120,9 @@ class SerialEvalCollector(BaseEvalCollector):
                                 observer_reward[b] = r
 
 
-                if (self.max_trajectories is not None and
-                        len(player_completed_traj_infos) >= self.max_trajectories):
-                    logger.log("Evaluation reached max num trajectories "
-                        f"({self.max_trajectories}).")
-                    break
+            if (self.max_trajectories is not None and len(player_completed_traj_infos) >= self.max_trajectories):
+                logger.log("Evaluation reached max num trajectories "f"({self.max_trajectories}).")
+                break
         if t == self.max_T - 1:
             logger.log("Evaluation reached max num time steps "
                 f"({self.max_T}).")
