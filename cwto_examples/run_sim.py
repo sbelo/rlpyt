@@ -167,6 +167,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
             TrajInfoCls=TrajInfo_obs,
             max_T=1000,
             max_trajectories=10,
+            log_full_obs=True
         )
         traj_infos_player, traj_infos_observer = eval_collector.collect_evaluation(runner.get_n_itr())
         observations = []
