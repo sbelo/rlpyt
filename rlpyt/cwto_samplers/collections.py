@@ -93,7 +93,7 @@ class TrajInfo_obs(TrajInfo):
         self.Actions = []
       
 
-    def step(self, observation, action, reward, done, agent_info, env_info):
+    def step(self, observation, action, reward, done, agent_info, env_info, cost=0, obs_act=None):
         super().step(observation, action, reward, done, agent_info, env_info)
         self.Observations.append(observation)
         self.Actions.append(action)
