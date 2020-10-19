@@ -207,7 +207,11 @@ class CpuEvalCollector(BaseEvalCollector):
                             r_ply, cost_ply = env.player_reward_shaping(r, env.last_obs_act)
                             # else:
                             #     r_ply = r
-                            player_traj_infos[b].step(player_observation[b], player_action[b], r_ply, d, player_agent_info[b], env_info, cost_ply)
+                            if self.log_full_obs:
+                                obs_to_log = env.last_obs
+                            else:
+                                obs_to_log = player_observation[b]
+                            player_traj_infos[b].step(obs_to_log, player_action[b], r_ply, d, player_agent_info[b], env_info, cost_ply)
                             self.player_traj_infos_queue.put(player_traj_infos[b].terminate(env.player_observation_space.null_value()))
                             player_traj_infos[b] = self.TrajInfoCls()
                         if d:
@@ -234,7 +238,11 @@ class CpuEvalCollector(BaseEvalCollector):
                                     prev_reset[b] = False
                                 else:
                                     player_reward[b] = r_ply
-                                    player_traj_infos[b].step(player_observation[b], player_action[b], r_ply, d,
+                                    if self.log_full_obs:
+                                        obs_to_log = env.last_obs
+                                    else:
+                                        obs_to_log = player_observation[b]
+                                    player_traj_infos[b].step(obs_to_log, player_action[b], r_ply, d,
                                                                 player_agent_info[b], env_info, cost_ply)
                                 player_observation[b] = o
 
