@@ -75,3 +75,29 @@ class TrajInfo(AttrDict):
             for i in range(self._n_obs):
                 setattr(self, "ObsPercentFeature" + str(i + 1), 100*getattr(self, "ObsPercentFeature" + str(i + 1)) / length)
         return self
+        
+class TrajInfo_obs(TrajInfo):
+    """
+    Because it inits as an AttrDict, this has the methods of a dictionary,
+    e.g. the attributes can be iterated through by traj_info.items()
+    Intent: all attributes not starting with underscore "_" will be logged.
+    (Can subclass for more fields.)
+    Convention: traj_info fields CamelCase, opt_info fields lowerCamelCase.
+    """
+
+    _discount = 1  # Leading underscore, but also class attr not in self.__dict__.
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)  # (for AttrDict behavior)
+        self.Observations = []
+        self.Actions = []
+      
+
+    def step(self, observation, action, reward, done, agent_info, env_info):
+        super().step(observation, action, reward, done, agent_info, env_info)
+        self.Observations.append(observation)
+        self.Actions.append(action)
+
+    def terminate(self, observation):
+        return self
+

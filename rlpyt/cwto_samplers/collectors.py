@@ -69,6 +69,7 @@ class BaseEvalCollector:
             observer_sync=None,
             player_step_buffer_np=None,
             observer_step_buffer_np=None,
+            log_full_obs=False
             ):
         save__init__args(locals())
 
