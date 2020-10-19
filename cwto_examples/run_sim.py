@@ -52,10 +52,10 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         observer_reward_shaping = observer_reward_shaping_cartpole
         max_decor_steps = 20
         b_size = 20
-        num_envs = 16
+        num_envs = 8
         max_episode_length = np.inf
-        player_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
-        observer_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+        player_model_kwargs = dict(hidden_sizes = [24],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+        observer_model_kwargs = dict(hidden_sizes = [64],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
 
     elif game == "hiv":
         work_env = wn.gym.make
@@ -70,12 +70,12 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
             observer_obs_space = obs_space
         player_reward_shaping = player_reward_shaping_hiv
         observer_reward_shaping = observer_reward_shaping_hiv
-        max_decor_steps = 100
-        b_size = 200
-        num_envs = 16
+        max_decor_steps = 10
+        b_size = 100
+        num_envs = 8
         max_episode_length = 100
-        player_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
-        observer_model_kwargs = dict(hidden_sizes = [256,256],lstm_size = 256,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+        player_model_kwargs = dict(hidden_sizes = [24],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+        observer_model_kwargs = dict(hidden_sizes = [64],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
 
     if serial:
         n_serial = int(len(state_space_high) / 2)
@@ -214,6 +214,7 @@ if __name__ == "__main__":
     parser.add_argument('--wandb', help='wandb logging', type=bool, default=True)
     parser.add_argument('--wandb_project', help='wandb project name', type=str, default="choose_what_to_observe_rlpyt")
     parser.add_argument('--wandb_run_name', help='wandb run name', type=str, default=None)
+    parser.add_argument('--wandb_group', help='wandb group name', type=str, default=None)
     parser.add_argument('--wandb_save_models', help='save models to wandb', type=bool, default=False)
     parser.add_argument('--log_interval_steps', help='interval between logs', type=int, default=1e5)
     parser.add_argument('--obs_mode', help='choice of observations', default='agent', type=str, choices=['agent','random','full'])
@@ -223,7 +224,7 @@ if __name__ == "__main__":
     parser.add_argument('--n_steps', help='number of optimization steps to run', type=int, default=50e6)
     args = parser.parse_args()
     if args.wandb:
-        wandb.init(project=args.wandb_project,name=args.wandb_run_name)
+        wandb.init(project=args.wandb_project,group=args.wandb_group,name=args.wandb_run_name)
 
     if args.secondary_cuda_idx is not None:
         assert args.cuda_idx is not None
