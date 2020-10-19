@@ -6,6 +6,7 @@ from rlpyt.utils.logging.context import logger_context
 from rlpyt.spaces.int_box import IntBox
 import os
 import torch
+import pickle
 import gym
 import whynot as wn
 from gym.spaces.box import Box
@@ -17,8 +18,10 @@ from gym.spaces import Discrete
 from reward_shaping import observer_reward_shaping_cartpole,player_reward_shaping_cartpole,observer_reward_shaping_hiv,player_reward_shaping_hiv
 from rlpyt.cwto_samplers.parallel.cpu.collectors import CpuEvalCollector
 from rlpyt.cwto_samplers.serial.collectors import SerialEvalCollector
+from rlpyt.utils.seed import set_envs_seeds,make_seed
+from rlpyt.cwto_samplers.collections import TrajInfo_obs
 
-def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent", inc_player_last_act=False, alt_train=False):
+def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent", inc_player_last_act=False, alt_train=False, eval_perf=False, n_steps=50e6):
     # def envs:
     if observation_mode == "agent":
         fully_obs = False
@@ -140,7 +143,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         observer_algo=observer_algo,
         agent=agent,
         sampler=sampler,
-        n_steps=50e6,
+        n_steps=n_steps,
         log_interval_steps=log_interval_steps,
         affinity=affinity,
         wandb_log=wandb_log,
@@ -153,7 +156,43 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         runner.train()
     if save_models_to_wandb:
         agent.save_models_to_wandb()
+    if eval_perf:
+        eval_n_envs = 10
+        eval_envs = [CWTO_EnvWrapper(**env_kwargs)
+                     for _ in range(eval_n_envs)]
+        set_envs_seeds(eval_envs, make_seed())
+        eval_collector = SerialEvalCollector(
+            envs=eval_envs,
+            agent=agent,
+            TrajInfoCls=TrajInfo_obs,
+            max_T=1000,
+            max_trajectories=10,
+        )
+        traj_infos_player, traj_infos_observer = eval_collector.collect_evaluation(runner.get_n_itr())
+        observations = []
+        player_actions = []
+        returns = []
+        observer_actions = []
+        for traj in traj_infos_player:
+            observations.append(np.array(traj.Observations))
+            player_actions.append(np.array(traj.Actions))
+            returns.append(traj.Return)
+        for traj in traj_infos_observer:
+            observer_actions.append(np.array([obs_action_translator(act, eval_envs[0].power_vec, eval_envs[0].obs_size) for act in traj.Actions]))
 
+        # save results:
+            open_obs = open('eval_observations.pkl',"wb")
+            pickle.dump(observations,open_obs)
+            open_obs.close()
+            open_ret = open('eval_returns.pkl',"wb")
+            pickle.dump(returns,open_ret)
+            open_ret.close()
+            open_pact = open('eval_player_actions.pkl',"wb")
+            pickle.dump(player_actions,open_pact)
+            open_pact.close()
+            open_oact = open('eval_observer_actions.pkl',"wb")
+            pickle.dump(observer_actions,open_oact)
+            open_oact.close()
 
 if __name__ == "__main__":
     import argparse
@@ -179,6 +218,8 @@ if __name__ == "__main__":
     parser.add_argument('--obs_mode', help='choice of observations', default='agent', type=str, choices=['agent','random','full'])
     parser.add_argument('--inc_player_last_act', help='include player action in observer observation', type=bool, default=False)
     parser.add_argument('--alt_train', help='each time only one agent optimized', type=bool, default=False)
+    parser.add_argument('--eval_perf', help='evaluate the performance of the player', type=bool, default=False)
+    parser.add_argument('--n_steps', help='number of optimization steps to run', type=int, default=50e6)
     args = parser.parse_args()
     if args.wandb:
         wandb.init(project=args.wandb_project,name=args.wandb_run_name)
@@ -203,5 +244,7 @@ if __name__ == "__main__":
         log_interval_steps=args.log_interval_steps,
         observation_mode=args.obs_mode,
         inc_player_last_act=args.inc_player_last_act,
-        alt_train=args.alt_train
+        alt_train=args.alt_train,
+        eval_perf=args.eval_perf,
+        n_steps=args.n_steps
     )
