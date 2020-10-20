@@ -1,12 +1,16 @@
 import numpy as np
 import wandb
 import torch
-
+from rlpyt.agents.base import AgentStep
 
 
 class CWTO_AgentWrapper:
-    def __init__(self, player, observer, serial = False, n_serial = None, alt = False, train_mask=[True,True]):
+    def __init__(self, player, observer, serial = False, n_serial = None, alt = False, train_mask=[True,True], one_agent=False, nplayeract=None):
         self._player_turn = False
+        self.one_agent = one_agent
+        if one_agent:
+            self.nplayeract = nplayeract
+
         self.player = player
         self.player.is_player = True
         self.observer = observer
@@ -27,26 +31,44 @@ class CWTO_AgentWrapper:
         if self.serial:
             self.curr_ser_count = self.n_serial
         self._player_turn = False
+        # if self.one_agent:
+        #     self.observer.reset()
+        # else:
         self.player.reset()
         self.observer.reset()
 
     def reset_one(self,idx):
+        # if self.one_agent:
+        #     self.observer.reset_one(idx)
+        # else:
         self.player.reset_one(idx)
         self.observer.reset_one(idx)
 
     def eval_mode(self,itr):
+        # if self.one_agent:
+        #     self.observer.eval_mode(itr)
+        # else:
         self.player.eval_mode(itr)
         self.observer.eval_mode(itr)
 
     def sample_mode(self,itr):
+        # if self.one_agent:
+        #     self.observer.sample_mode(itr)
+        # else:
         self.player.sample_mode(itr)
         self.observer.sample_mode(itr)
 
     def collector_initialize(self,**kwargs):
+        # if self.one_agent:
+        #     self.observer.collector_initialize(**kwargs)
+        # else:
         self.player.collector_initialize(**kwargs)
         self.observer.collector_initialize(**kwargs)
 
     def value(self, obs_pyt, act_pyt, rew_pyt, is_player):
+        # if self.one_agent:
+        #     return self.observer.value(obs_pyt, act_pyt, rew_pyt)
+        # else:
         if is_player:
             return self.player.value(obs_pyt,act_pyt,rew_pyt)
         else:
@@ -63,6 +85,9 @@ class CWTO_AgentWrapper:
             self.observer.sample_mode(itr)
 
     def data_parallel(self):
+        # if self.one_agent:
+        #     self.observer.data_parallel()
+        # else:
         self.player.data_parallel()
         self.observer.data_parallel()
 
@@ -73,38 +98,49 @@ class CWTO_AgentWrapper:
             player_turn = self._player_turn
 
         if player_turn:
-            res = self.player.step(player_obs_pyt, player_act_pyt, player_rew_pyt)
-            if self.alt:
-                next_p_turn = True
-                self.alt_counter -= 1
-                if self.alt_counter <= 0:
-                    self.alt_counter = 2
-                    next_p_turn = False
-            else:
+            if self.one_agent:
+                res = self.player.step(player_obs_pyt, player_act_pyt, player_rew_pyt)
+                res = AgentStep(action=self.player_res,agent_info=res.agent_info)
                 next_p_turn = False
+            else:
+                res = self.player.step(player_obs_pyt, player_act_pyt, player_rew_pyt)
+                if self.alt:
+                    next_p_turn = True
+                    self.alt_counter -= 1
+                    if self.alt_counter <= 0:
+                        self.alt_counter = 2
+                        next_p_turn = False
+                else:
+                    next_p_turn = False
         else:
-            res = self.observer.step(player_obs_pyt, player_act_pyt, player_rew_pyt)
-            if self.serial:
-                next_p_turn = False
-                if self.alt:
-                    self.alt_counter -= 1
-                    if self.alt_counter <= 0:
-                        self.alt_counter = 2
-                        self.curr_ser_count -= 1
-                else:
-                    self.curr_ser_count -= 1
-                if self.curr_ser_count <= 0:
-                    next_p_turn = True
-                    self.curr_ser_count = self.n_serial
+            if self.one_agent:
+                self.cact = self.observer.step(player_obs_pyt, player_act_pyt, player_rew_pyt)
+                self.player_res = torch.remainder(self.cact.action, float(self.nplayeract))
+                res = AgentStep(action=torch.floor(torch.div(self.cact.action,float(self.nplayeract))),agent_info=self.cact.agent_info)
+                next_p_turn = True
             else:
-                if self.alt:
+                res = self.observer.step(player_obs_pyt, player_act_pyt, player_rew_pyt)
+                if self.serial:
                     next_p_turn = False
-                    self.alt_counter -= 1
-                    if self.alt_counter <= 0:
-                        self.alt_counter = 2
+                    if self.alt:
+                        self.alt_counter -= 1
+                        if self.alt_counter <= 0:
+                            self.alt_counter = 2
+                            self.curr_ser_count -= 1
+                    else:
+                        self.curr_ser_count -= 1
+                    if self.curr_ser_count <= 0:
                         next_p_turn = True
+                        self.curr_ser_count = self.n_serial
                 else:
-                    next_p_turn = True
+                    if self.alt:
+                        next_p_turn = False
+                        self.alt_counter -= 1
+                        if self.alt_counter <= 0:
+                            self.alt_counter = 2
+                            next_p_turn = True
+                    else:
+                        next_p_turn = True
         if change_flag:
             self._player_turn = next_p_turn
         return res
