@@ -22,7 +22,7 @@ from rlpyt.cwto_samplers.serial.collectors import SerialEvalCollector
 from rlpyt.utils.seed import set_envs_seeds,make_seed
 from rlpyt.cwto_samplers.collections import TrajInfo_obs
 
-def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent", inc_player_last_act=False, alt_train=False, eval_perf=False, n_steps=50e6):
+def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, eval=False, serial=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, observation_mode="agent", inc_player_last_act=False, alt_train=False, eval_perf=False, n_steps=50e6,one_agent=False):
     # def envs:
     if observation_mode == "agent":
         fully_obs = False
@@ -75,7 +75,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         b_size = 32
         num_envs = 8
         max_episode_length = 100
-        player_model_kwargs = dict(hidden_sizes = [24],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+        player_model_kwargs = dict(hidden_sizes = [32],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
         observer_model_kwargs = dict(hidden_sizes = [64],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
 
     elif game == "heparin":
@@ -106,7 +106,10 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         observer_act_space = Discrete(2)
         observer_act_space.shape = (1,)
     else:
-        observer_act_space = IntBox(low=0,high=int(2**int(len(state_space_high) / 2)))
+        if one_agent:
+            observer_act_space = IntBox(low=0, high= player_act_space.n * int(2 ** int(len(state_space_high) / 2)))
+        else:
+            observer_act_space = IntBox(low=0,high=int(2**int(len(state_space_high) / 2)))
 
 
     affinity = dict(cuda_idx=cuda_idx, workers_cpus=list(range(n_parallel)))
@@ -155,7 +158,10 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
     observer_algo = PPO()
     player = CWTO_LstmAgent(ModelCls=player_model, model_kwargs=player_model_kwargs, initial_model_state_dict=None)
     observer = CWTO_LstmAgent(ModelCls=observer_model, model_kwargs=observer_model_kwargs, initial_model_state_dict=None)
-    agent = CWTO_AgentWrapper(player,observer,serial=serial,n_serial=n_serial,alt=alt, train_mask=train_mask)
+    if one_agent:
+        agent = CWTO_AgentWrapper(player, observer, serial=serial, n_serial=n_serial, alt=alt, train_mask=train_mask,one_agent=one_agent,nplayeract=player_act_space.n)
+    else:
+        agent = CWTO_AgentWrapper(player,observer,serial=serial,n_serial=n_serial,alt=alt, train_mask=train_mask)
 
     if eval:
         RunnerCl = MinibatchRlEval
