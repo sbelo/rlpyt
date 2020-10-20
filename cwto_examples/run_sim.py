@@ -81,8 +81,10 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
     elif game == "heparin":
         work_env = HeparinEnv
         env_name = 'Heparin-Simulator'
-        state_space_low = np.asarray([18728.926,72.84662,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
-        state_space_high = np.asarray([2.7251439e+04,1.0664291e+02,0.0000000e+00,8.9383472e+02,1.4476662e+02,1.3368750e+02,1.6815166e+02,1.0025734e+02,1.5770737e+01,4.7767456e+01,7.7194958e+00,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])
+        state_space_low = np.asarray([18728.926,72.84662,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+        state_space_high = np.asarray([2.7251439e+04,1.0664291e+02,200.0,8.9383472e+02,1.0025734e+02,1.5770737e+01,4.7767456e+01,1.0,1.0,1.0,1.0,1.0,1.0,1.0])
+        # state_space_low = np.asarray([18728.926,72.84662,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+        # state_space_high = np.asarray([2.7251439e+04,1.0664291e+02,0.0000000e+00,8.9383472e+02,1.4476662e+02,1.3368750e+02,1.6815166e+02,1.0025734e+02,1.5770737e+01,4.7767456e+01,7.7194958e+00,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])
         obs_space = Box(state_space_low, state_space_high, dtype=np.float32)
         player_act_space = work_env(env_name).action_space
         if inc_player_last_act:
