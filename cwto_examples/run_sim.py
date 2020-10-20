@@ -72,7 +72,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         player_reward_shaping = player_reward_shaping_hiv
         observer_reward_shaping = observer_reward_shaping_hiv
         max_decor_steps = 10
-        b_size = 100
+        b_size = 32
         num_envs = 8
         max_episode_length = 100
         player_model_kwargs = dict(hidden_sizes = [24],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
