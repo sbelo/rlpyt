@@ -9,6 +9,7 @@ class HeparinEnv(Env):
     observation_space = None
 
     def __init__(self,env_name):
+        self.env = self
         self.Trans = np.load("model/Transitions.npy")
         self.Feat = np.load("model/Features.npy")
         self.Cont = np.load("model/Contexts.npy")
