@@ -1,6 +1,7 @@
 import numpy as np
 
-prices_hiv = 5*np.random.rand(6)
+prices_hep = 0.01*np.ones(11)
+prices_hiv = 0.07*np.ones(6) #5*np.random.rand(6)
 prices_cartpole = 0.5*np.random.rand(4)
 
 player_alpha = 0
@@ -12,6 +13,17 @@ def reward_regularizer_hiv(rew):
 
 def reward_regularizer_cartpole(rew):
     return rew
+
+
+def player_reward_shaping_hep(reward,obs_act):
+    total_cost = obs_act @ prices_hep
+    shaped_reward = reward - player_alpha * (total_cost)
+    return shaped_reward, total_cost
+
+def observer_reward_shaping_hep(reward,obs_act):
+    total_cost = obs_act @ prices_hep
+    shaped_reward = reward - observer_alpha * (total_cost)
+    return shaped_reward, total_cost
 
 def player_reward_shaping_hiv(reward,obs_act):
     total_cost = obs_act @ prices_hiv

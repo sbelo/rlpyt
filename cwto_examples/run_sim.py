@@ -6,6 +6,7 @@ from rlpyt.utils.logging.context import logger_context
 from rlpyt.spaces.int_box import IntBox
 import os
 import torch
+from heparin_env import HeparinEnv
 import pickle
 import gym
 import whynot as wn
@@ -15,7 +16,7 @@ from rlpyt.cwto_envs.cwto_env_wrp import *
 from rlpyt.cwto_agents.cwto_agent import CWTO_LstmAgent, CWTO_AlternatingLstmAgent
 from rlpyt.cwto_models.cwto_model import CWTO_LstmModel
 from gym.spaces import Discrete
-from reward_shaping import observer_reward_shaping_cartpole,player_reward_shaping_cartpole,observer_reward_shaping_hiv,player_reward_shaping_hiv
+from reward_shaping import * #observer_reward_shaping_cartpole,player_reward_shaping_cartpole,observer_reward_shaping_hiv,player_reward_shaping_hiv
 from rlpyt.cwto_samplers.parallel.cpu.collectors import CpuEvalCollector
 from rlpyt.cwto_samplers.serial.collectors import SerialEvalCollector
 from rlpyt.utils.seed import set_envs_seeds,make_seed
@@ -76,6 +77,27 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         max_episode_length = 100
         player_model_kwargs = dict(hidden_sizes = [24],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
         observer_model_kwargs = dict(hidden_sizes = [64],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+
+    elif game == "heparin":
+        work_env = HeparinEnv
+        env_name = 'Heparin-Simulator'
+        state_space_low = np.asarray([18728.926,72.84662,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+        state_space_high = np.asarray([2.7251439e+04,1.0664291e+02,0.0000000e+00,8.9383472e+02,1.4476662e+02,1.3368750e+02,1.6815166e+02,1.0025734e+02,1.5770737e+01,4.7767456e+01,7.7194958e+00,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])
+        obs_space = Box(state_space_low, state_space_high, dtype=np.float32)
+        player_act_space = work_env(env_name).action_space
+        if inc_player_last_act:
+            observer_obs_space = Box(np.append(state_space_low,0), np.append(state_space_high,4), dtype=np.float32)
+        else:
+            observer_obs_space = obs_space
+        player_reward_shaping = player_reward_shaping_hep
+        observer_reward_shaping = observer_reward_shaping_hep
+        max_decor_steps = 3
+        b_size = 20
+        num_envs = 8
+        max_episode_length = 20
+        player_model_kwargs = dict(hidden_sizes = [32],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+        observer_model_kwargs = dict(hidden_sizes = [128],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
+
 
     if serial:
         n_serial = int(len(state_space_high) / 2)
@@ -200,7 +222,7 @@ if __name__ == "__main__":
     import wandb
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--game', help='name of env', default='hiv', type=str, choices=['cartpole','hiv'])
+    parser.add_argument('--game', help='name of env', default='hiv', type=str, choices=['cartpole','hiv','heparin'])
     parser.add_argument('--run_ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda_idx', help='gpu to use ', type=int, default=None)
     parser.add_argument('--secondary_cuda_idx', help='gpu to use - for parallel work', type=int, default=None)
