@@ -1,6 +1,6 @@
 import numpy as np
 
-prices_hep = 0.01*np.ones(11)
+prices_hep = 0.01*np.ones(7)
 prices_hiv = 0.07*np.ones(6) #5*np.random.rand(6)
 prices_cartpole = 0.5*np.random.rand(4)
 
