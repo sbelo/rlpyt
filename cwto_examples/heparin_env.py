@@ -2,6 +2,7 @@ from gym import Env
 from gym.spaces import Discrete,Box
 import random
 import numpy as np
+from gym.wrappers.time_limit import TimeLimit
 
 
 class HeparinEnv(Env):
@@ -9,7 +10,7 @@ class HeparinEnv(Env):
     observation_space = None
 
     def __init__(self,env_name):
-        self.env = self
+        self.env = TimeLimit(self,50)
         self.Trans = np.load("model/Transitions.npy")
         self.Feat = np.load("model/Features.npy")
         self.Cont = np.load("model/Contexts.npy")
