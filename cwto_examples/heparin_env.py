@@ -10,26 +10,28 @@ class HeparinEnv(Env):
     observation_space = None
 
     def __init__(self,env_name):
-        self.env = TimeLimit(self,50)
         self.Trans = np.load("model/Transitions.npy")
         self.Feat = np.load("model/Features.npy")
         self.Cont = np.load("model/Contexts.npy")
         self.Rew = np.load("model/Rewards.npy")
+        self.InitCont = np.load("model/InitCont.npy")
+        self.InitStat = np.load("model/InitStat.npy")
         self.nstates = self.Rew.size
         self.action_space = Discrete(self.Trans.shape[2])
         self.observation_space = Box(np.asarray([np.min(self.Cont[:,i]) for i in range(len(self.Cont[0]))] + [np.min(self.Feat[:,i]) for i in range(len(self.Feat[0]))]),np.asarray([np.max(self.Cont[:,i]) for i in range(len(self.Cont[0]))] + [np.max(self.Feat[:,i]) for i in range(len(self.Feat[0]))]),dtype=np.float32)
-        g = 0
-        self.legal_cs = []
-        while True:
-            try:
-                cs = np.load("model/LegalCS_" + str(g) + ".npy")
-            except:
-                break
-            self.legal_cs.append(cs)
-
-            g += 1
+        # g = 0
+        # self.legal_cs = []
+        # while True:
+        #     try:
+        #         cs = np.load("model/LegalCS_" + str(g) + ".npy")
+        #     except:
+        #         break
+        #     self.legal_cs.append(cs)
+        #
+        #     g += 1
         random.seed()
         np.random.seed()
+        self.env = TimeLimit(self,50)
 
 
     def step(self, action):
@@ -46,8 +48,8 @@ class HeparinEnv(Env):
         return np.reshape(obs,obs.size), reward, done, {'timeout':done}
 
     def reset(self):
-        self.curr_cont = random.randint(0,len(self.legal_cs)-1)
-        self.curr_state = self.legal_cs[self.curr_cont][random.randint(0,len(self.legal_cs[self.curr_cont])-1)]
+        self.curr_cont = np.random.choice(np.arange(len(self.InitCont)),p=self.InitCont) #random.randint(0,len(self.legal_cs)-1)
+        self.curr_state = np.random.choice(np.arange(self.nstates),p=self.InitStat[self.curr_cont]) #self.legal_cs[self.curr_cont][random.randint(0,len(self.legal_cs[self.curr_cont])-1)]
         self.ccont = self.Cont[self.curr_cont]
         self.ccont = np.reshape(self.ccont,self.ccont.size)
         feat = self.Feat[self.curr_state]
