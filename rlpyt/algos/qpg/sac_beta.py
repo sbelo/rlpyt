@@ -221,7 +221,7 @@ class SACBeta(RlAlgorithm):
         )
         if self.bootstrap_timelimit:
             samples_to_buffer = SamplesToBufferTl(*samples_to_buffer,
-                timeout=samples.env.env_info.timeout)
+                timeout=samples.env.env_info)
         return samples_to_buffer
 
     def loss(self, samples):
