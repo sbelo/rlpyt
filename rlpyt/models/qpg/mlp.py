@@ -59,6 +59,36 @@ class PiMlpModel(torch.nn.Module):
         return mu, log_std
 
 
+class PiMlpModelBeta(torch.nn.Module):
+    """Action distrubition MLP model for SAC agent."""
+
+    def __init__(
+            self,
+            observation_shape,
+            hidden_sizes,
+            action_size,
+            ):
+        super().__init__()
+        self._obs_ndim = len(observation_shape)
+        self._action_size = action_size
+        self.mlp = MlpModel(
+            input_size=int(np.prod(observation_shape)),
+            hidden_sizes=hidden_sizes,
+            output_size=action_size * 2,
+            softplus=True,
+            sp_beta=1,
+            sp_threshold=20,
+        )
+
+    def forward(self, observation, prev_action, prev_reward):
+        lead_dim, T, B, _ = infer_leading_dims(observation,
+            self._obs_ndim)
+        output = self.mlp(observation.view(T * B, -1))
+        alpha, beta = output[:, :self._action_size], output[:, self._action_size:]
+        alpha, beta = restore_leading_dims((alpha, beta), lead_dim, T, B)
+        return alpha, beta
+
+
 class QofMuMlpModel(torch.nn.Module):
     """Q portion of the model for DDPG, an MLP."""
 
