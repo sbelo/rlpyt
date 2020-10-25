@@ -39,6 +39,7 @@ class MinibatchRlBase(BaseRunner):
             seed=None,
             affinity=None,
             log_interval_steps=1e5,
+            wandb_log=False
             ):
         n_steps = int(n_steps)
         log_interval_steps = int(log_interval_steps)
@@ -227,6 +228,37 @@ class MinibatchRlBase(BaseRunner):
             for k, v in self._opt_infos.items():
                 logger.record_tabular_misc_stat(k, v)
         self._opt_infos = {k: list() for k in self._opt_infos}  # (reset)
+    
+    def wandb_logging(self,itr,traj_infos=None):
+
+        if traj_infos is None:
+            traj_infos = self._traj_infos
+
+        raw_log_dict = dict()
+        if traj_infos:
+            for k in traj_infos[0]:
+                if not k.startswith("_"):
+                    raw_log_dict[k] = np.asarray([info[k] for info in traj_infos])
+
+        if self._opt_infos:
+            for k, v in self._opt_infos.items():
+                raw_log_dict[k] = np.asarray(v)
+
+        log_dict = dict()
+        for key, value in raw_log_dict.items():
+            if len(value) > 0:
+                log_dict[key + "Average"] = np.average(value)
+                log_dict[key + "Std"] = np.std(value)
+                log_dict[key + "Median"] = np.median(value)
+                log_dict[key + "Min"] = np.min(value)
+                log_dict[key + "Max"] = np.max(value)
+            else:
+                log_dict[key + "Average"] = np.nan
+                log_dict[key + "Std"] = np.nan
+                log_dict[key + "Median"] = np.nan
+                log_dict[key + "Min"] = np.nan
+                log_dict[key + "Max"] = np.nan
+        wandb.log(log_dict,step=itr)
 
 
 class MinibatchRl(MinibatchRlBase):
@@ -259,6 +291,8 @@ class MinibatchRl(MinibatchRlBase):
                 opt_info = self.algo.optimize_agent(itr, samples)
                 self.store_diagnostics(itr, traj_infos, opt_info)
                 if (itr + 1) % self.log_interval_itrs == 0:
+                    if self.wandb_log:
+                        self.wandb_logging(itr)
                     self.log_diagnostics(itr)
         self.shutdown()
 
@@ -312,6 +346,8 @@ class MinibatchRlEval(MinibatchRlBase):
                 self.store_diagnostics(itr, traj_infos, opt_info)
                 if (itr + 1) % self.log_interval_itrs == 0:
                     eval_traj_infos, eval_time = self.evaluate_agent(itr)
+                    if self.wandb_log:
+                        self.wandb_logging(itr,traj_infos=eval_traj_infos)
                     self.log_diagnostics(itr, eval_traj_infos, eval_time)
         self.shutdown()
 
