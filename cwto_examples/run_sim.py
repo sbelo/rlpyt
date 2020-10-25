@@ -13,7 +13,7 @@ import torch
 from heparin_env import HeparinEnv
 import pickle
 import gym
-from rlpyt.models.qpg.mlp import QofMuMlpModel, PiMlpModelBeta PiMlpModel
+from rlpyt.models.qpg.mlp import QofMuMlpModel, PiMlpModelBeta, PiMlpModel
 import whynot as wn
 from gym.spaces.box import Box
 from rlpyt.cwto_agents.cwto_agent_wrp import *
