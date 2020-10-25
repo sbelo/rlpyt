@@ -15,7 +15,7 @@ def obs_action_translator(action,power_vec,dim_obs):
             action -= power_vec[i]
     return trans_action
 
-def reward_shaping_ph(reward):
+def reward_shaping_ph(reward,obs_act):
     return reward, 0
 
 
