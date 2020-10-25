@@ -5,6 +5,7 @@ import torch
 import math
 from collections import deque
 import numpy as np
+import wandb
 from rlpyt.runners.base import BaseRunner
 from rlpyt.utils.quick_args import save__init__args
 from rlpyt.utils.seed import set_seed, make_seed
