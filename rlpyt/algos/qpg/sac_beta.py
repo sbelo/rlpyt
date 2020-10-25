@@ -142,7 +142,7 @@ class SACBeta(RlAlgorithm):
             ReplayCls = AsyncUniformReplayBuffer if async_ else UniformReplayBuffer
         else:
             example_to_buffer = SamplesToBufferTl(*example_to_buffer,
-                timeout=examples["env_info"].timeout)
+                timeout=examples["env_info"])
             ReplayCls = AsyncTlUniformReplayBuffer if async_ else TlUniformReplayBuffer
         replay_kwargs = dict(
             example=example_to_buffer,
