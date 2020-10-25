@@ -1,3 +1,4 @@
+# ref: example_2.py
 from rlpyt.samplers.serial.sampler import SerialSampler
 from rlpyt.envs.gym import make as gym_make
 from rlpyt.algos.qpg.sac import SAC
@@ -6,7 +7,7 @@ from rlpyt.runners.minibatch_rl import MinibatchRlEval
 from rlpyt.utils.logging.context import logger_context
 
 
-def build_and_train(env_id="Hopper-v3", run_ID=0, cuda_idx=None):
+def build_and_train(env_id="HalfCheetah-v2", run_ID=0, cuda_idx=None):
     sampler = SerialSampler(
         EnvCls=gym_make,
         env_kwargs=dict(id=env_id),
@@ -14,10 +15,11 @@ def build_and_train(env_id="Hopper-v3", run_ID=0, cuda_idx=None):
         batch_T=1,  # One time-step per sampler iteration.
         batch_B=1,  # One environment (i.e. sampler Batch dimension).
         max_decorrelation_steps=0,
-        eval_n_envs=10,
-        eval_max_steps=int(51e3),
-        eval_max_trajectories=50,
     )
+#         eval_n_envs=10,
+#         eval_max_steps=int(51e3),
+#         eval_max_trajectories=50,
+#     )
     algo = SAC()  # Run with defaults.
     agent = SacAgent()
     runner = MinibatchRlEval(
@@ -38,7 +40,7 @@ def build_and_train(env_id="Hopper-v3", run_ID=0, cuda_idx=None):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--env_id', help='environment ID', default='Hopper-v3')
+    parser.add_argument('--env_id', help='environment ID', default='HalfCheetah-v2')
     parser.add_argument('--run_ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda_idx', help='gpu to use ', type=int, default=None)
     args = parser.parse_args()
