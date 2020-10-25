@@ -34,10 +34,9 @@ class MlpModel(torch.nn.Module):
             sequence.extend([layer, nonlinearity()])
         if output_size is not None:
             last_size = hidden_sizes[-1] if hidden_sizes else input_size
+            sequence.append(torch.nn.Linear(last_size, output_size))
             if softplus:
                 sequence.append(torch.nn.Softplus(beta=sp_beta,threshold=sp_threshold))
-            else:
-                sequence.append(torch.nn.Linear(last_size, output_size))
         elif softplus:
             last_size = hidden_sizes[-1] if hidden_sizes else input_size
             sequence.append(torch.nn.Softplus(beta=sp_beta,threshold=sp_threshold))
