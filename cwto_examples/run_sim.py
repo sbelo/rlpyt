@@ -104,6 +104,8 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         observer_model_kwargs = dict(hidden_sizes = [128],lstm_size = 16,nonlinearity = torch.nn.ReLU, normalize_observation = False, norm_obs_clip = 10, norm_obs_var_clip = 1e-6)
   
     elif game == "halfcheetah":
+        assert not serial
+        assert not one_agent
         work_env = gym.make
         env_name = 'HalfCheetah-v2'
         temp_env = work_env(env_name)
@@ -128,16 +130,18 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         observer_q_model_kwargs = dict(hidden_sizes = [256,256])
         player_v_model_kwargs = dict(hidden_sizes = [256,256])
         observer_v_model_kwargs = dict(hidden_sizes = [256,256])
-        
-    if serial:
-        n_serial = int(len(state_space_high) / 2)
-        observer_act_space = Discrete(2)
-        observer_act_space.shape = (1,)
+    if game == "halfcheetah":
+        observer_act_space = Box(low=state_space_low[:int(len(state_space_low)/2)],high=state_space_high[:int(len(state_space_high)/2)])
     else:
-        if one_agent:
-            observer_act_space = IntBox(low=0, high= player_act_space.n * int(2 ** int(len(state_space_high) / 2)))
+        if serial:
+            n_serial = int(len(state_space_high) / 2)
+            observer_act_space = Discrete(2)
+            observer_act_space.shape = (1,)
         else:
-            observer_act_space = IntBox(low=0,high=int(2**int(len(state_space_high) / 2)))
+            if one_agent:
+                observer_act_space = IntBox(low=0, high= player_act_space.n * int(2 ** int(len(state_space_high) / 2)))
+            else:
+                observer_act_space = IntBox(low=0,high=int(2**int(len(state_space_high) / 2)))
 
 
     affinity = dict(cuda_idx=cuda_idx, workers_cpus=list(range(n_parallel)))
