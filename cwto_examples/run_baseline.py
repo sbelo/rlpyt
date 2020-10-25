@@ -64,7 +64,7 @@ def build_and_train(env_id="HalfCheetah-v2", run_ID=0, cuda_idx=None,sample_mode
         sampler=sampler,
         n_steps=n_steps,
         log_interval_steps=log_interval_steps,
-        affinity=dict(cuda_idx=cuda_idx),
+        affinity=affinity,
         wandb_log=True
     )
     config = dict(env_id=env_id)
