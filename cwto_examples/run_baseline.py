@@ -76,6 +76,7 @@ def build_and_train(env_id="HalfCheetah-v2", run_ID=0, cuda_idx=None,sample_mode
 
 if __name__ == "__main__":
     import argparse
+    import wandb
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
     parser.add_argument('--env_id', help='name of env', default='HalfCheetah-v2', type=str)
