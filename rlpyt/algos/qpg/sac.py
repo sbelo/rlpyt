@@ -221,7 +221,7 @@ class SAC(RlAlgorithm):
         )
         if self.bootstrap_timelimit:
             samples_to_buffer = SamplesToBufferTl(*samples_to_buffer,
-                timeout=samples.env.env_info if isinstance(samples.env.env_info,bool) else samples.env.env_info.timeout)
+                timeout=samples.env.env_info if isinstance(samples.env.env_info,torch.Tensor) else samples.env.env_info.timeout)
         return samples_to_buffer
 
     def loss(self, samples):
