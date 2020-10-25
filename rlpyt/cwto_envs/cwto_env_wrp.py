@@ -20,7 +20,7 @@ def reward_shaping_ph(reward):
 
 
 class CWTO_EnvWrapper(Wrapper):
-    def __init__(self,work_env,env_name,obs_spaces,action_spaces,serial,force_float32=True,act_null_value=[0,0],obs_null_value=[0,0],player_reward_shaping=None,observer_reward_shaping=None,fully_obs=False,rand_obs=False,inc_player_last_act=False,max_episode_length=np.inf):
+    def __init__(self,work_env,env_name,obs_spaces,action_spaces,serial,force_float32=True,act_null_value=[0,0],obs_null_value=[0,0],player_reward_shaping=None,observer_reward_shaping=None,fully_obs=False,rand_obs=False,inc_player_last_act=False,max_episode_length=np.inf,cont_act=False):
         env = work_env(env_name)
         super().__init__(env)
         o = self.env.reset()
@@ -42,6 +42,7 @@ class CWTO_EnvWrapper(Wrapper):
             null_value=act_null_value,
             force_float32=force_float32,
         )
+        self.cont_act = cont_act
         self._observation_space = GymSpaceWrapper(
             space=self.env.observation_space,
             name="obs",
@@ -167,7 +168,8 @@ class CWTO_EnvWrapper(Wrapper):
                     d = False
 
             else:
-                r_action = self.obs_action_translator(r_action, self.power_vec, self.obs_size)
+                if not self.cont_act:
+                    r_action = self.obs_action_translator(r_action, self.power_vec, self.obs_size)
                 if self.fully_obs:
                     r_action = np.ones(r_action.shape)
                 elif self.rand_obs:
