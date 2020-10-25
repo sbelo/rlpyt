@@ -28,7 +28,7 @@ SamplesToBufferTl = namedarraytuple("SamplesToBufferTl",
     SamplesToBuffer._fields + ("timeout",))
 
 
-class SAC(RlAlgorithm):
+class SACBeta(RlAlgorithm):
     """Soft actor critic algorithm, training from a replay buffer."""
 
     opt_info_fields = tuple(f for f in OptInfo._fields)  # copy
