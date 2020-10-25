@@ -48,7 +48,7 @@ def build_and_train(env_id="HalfCheetah-v2", run_ID=0, cuda_idx=None,sample_mode
         env_kwargs=env_kwargs,
         eval_env_kwargs=eval_env_kwargs,
         batch_T=b_size,  # One time-step per sampler iteration.
-        batch_B=,num_envs  # One environment (i.e. sampler Batch dimension).
+        batch_B=num_envs,  # One environment (i.e. sampler Batch dimension).
         max_decorrelation_steps=0,
         eval_n_envs=num_eval_envs,
         eval_CollectorCls = eval_collector_cl,
