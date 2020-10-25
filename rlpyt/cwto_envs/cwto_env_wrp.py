@@ -4,6 +4,7 @@ from gym.wrappers.time_limit import TimeLimit
 from rlpyt.envs.base import EnvSpaces, EnvStep
 from rlpyt.spaces.gym_wrapper import GymSpaceWrapper
 import random
+import numpy as np
 
 
 def obs_action_translator(action,power_vec,dim_obs):
@@ -131,6 +132,8 @@ class CWTO_EnvWrapper(Wrapper):
             return EnvStep(obs, r, d, info)
 
         else:
+            if not np.array_equal(action,action.astype(bool)):
+                action = np.random.binomial(1,action)
             r_action = self.observer_action_space.revert(action)
             if self.serial:
                 if self.fully_obs:
