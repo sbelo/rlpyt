@@ -142,7 +142,7 @@ class SAC(RlAlgorithm):
             ReplayCls = AsyncUniformReplayBuffer if async_ else UniformReplayBuffer
         else:
             example_to_buffer = SamplesToBufferTl(*example_to_buffer,
-                timeout=examples["env_info"].timeout)
+                timeout=examples["env_info"] if isinstance(examples["env_info"],bool) else examples["env_info"].timeout)
             ReplayCls = AsyncTlUniformReplayBuffer if async_ else TlUniformReplayBuffer
         replay_kwargs = dict(
             example=example_to_buffer,
@@ -221,7 +221,7 @@ class SAC(RlAlgorithm):
         )
         if self.bootstrap_timelimit:
             samples_to_buffer = SamplesToBufferTl(*samples_to_buffer,
-                timeout=samples.env.env_info.timeout)
+                timeout=samples.env.env_info if isinstance(samples.env.env_info,bool) ele samples.env.env_info.timeout)
         return samples_to_buffer
 
     def loss(self, samples):
