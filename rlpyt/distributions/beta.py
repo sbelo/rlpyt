@@ -54,7 +54,7 @@ class Beta(Distribution,):
 
     def log_likelihood(self, x, dist_info):
         beta_dist = self.dist(dist_info.alpha,dist_info.beta)
-        if not isinstance(x,torch.tensor):
+        if not isinstance(x,torch.Tensor):
             x = torch.tensor(x)
         logli = -(torch.sum(beta_dist.log_prob(x), dim=-1))
         return logli
