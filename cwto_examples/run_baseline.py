@@ -4,7 +4,7 @@ from rlpyt.samplers.parallel.cpu.sampler import CpuSampler
 from rlpyt.envs.gym import make as gym_make
 from rlpyt.algos.qpg.sac import SAC
 from rlpyt.agents.qpg.sac_agent import SacAgent
-from rlpyt.runners.minibatch_rl import MinibatchRlEval
+from rlpyt.runners.minibatch_rl import MinibatchRl
 from rlpyt.utils.logging.context import logger_context
 from rlpyt.samplers.parallel.cpu.collectors import CpuEvalCollector
 from rlpyt.samplers.serial.collectors import SerialEvalCollector
@@ -58,7 +58,7 @@ def build_and_train(env_id="HalfCheetah-v2", run_ID=0, cuda_idx=None,sample_mode
 #     )
     algo = SAC()  # Run with defaults.
     agent = SacAgent()
-    runner = MinibatchRlEval(
+    runner = MinibatchRl(
         algo=algo,
         agent=agent,
         sampler=sampler,
