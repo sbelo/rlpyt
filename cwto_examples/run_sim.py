@@ -41,6 +41,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
     if game == "cartpole":
         work_env = gym.make
         env_name = 'CartPole-v1'
+        cont_act = False
         state_space_low = np.asarray(
             [0.0, 0.0, 0.0, 0.0, -4.8000002e+00, -3.4028235e+38, -4.1887903e-01, -3.4028235e+38])
         state_space_high = np.asarray([1.0, 1.0, 1.0, 1.0, 4.8000002e+00, 3.4028235e+38, 4.1887903e-01, 3.4028235e+38])
@@ -64,6 +65,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
     elif game == "hiv":
         work_env = wn.gym.make
         env_name = 'HIV-v0'
+        cont_act = False
         state_space_low = np.asarray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         state_space_high = np.asarray([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
         obs_space = Box(state_space_low, state_space_high, dtype=np.float32)
@@ -84,6 +86,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
     elif game == "heparin":
         work_env = HeparinEnv
         env_name = 'Heparin-Simulator'
+        cont_act = False
         state_space_low = np.asarray([0.0,0.0,0.0,0.0,0.0,0.0,0.0,18728.926,72.84662,0.0,0.0,0.0,0.0,0.0])
         state_space_high = np.asarray([1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.7251439e+04,1.0664291e+02,200.0,8.9383472e+02,1.0025734e+02,1.5770737e+01,4.7767456e+01])
         # state_space_low = np.asarray([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,18728.926,72.84662,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
@@ -108,6 +111,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         assert not one_agent
         work_env = gym.make
         env_name = 'HalfCheetah-v2'
+        cont_act = True
         temp_env = work_env(env_name)
         state_space_low = np.concatenate([np.zeros(temp_env.observation_space.low.shape),temp_env.observation_space.low])
         state_space_high = np.concatenate([np.ones(temp_env.observation_space.high.shape),temp_env.observation_space.high])
@@ -162,7 +166,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         else:
             eval_collector_cl = None
         print(f"Using CPU parallel sampler (agent in workers), {gpu_cpu} for optimizing.")
-    env_kwargs = dict(work_env=work_env,env_name=env_name,obs_spaces=[obs_space,observer_obs_space],action_spaces=[player_act_space,observer_act_space],serial=serial,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,fully_obs=fully_obs,rand_obs=rand_obs,inc_player_last_act=inc_player_last_act,max_episode_length=max_episode_length)
+    env_kwargs = dict(work_env=work_env,env_name=env_name,obs_spaces=[obs_space,observer_obs_space],action_spaces=[player_act_space,observer_act_space],serial=serial,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,fully_obs=fully_obs,rand_obs=rand_obs,inc_player_last_act=inc_player_last_act,max_episode_length=max_episode_length,cont_act=cont_act)
     if eval:
         eval_env_kwargs = env_kwargs
         eval_max_steps = 1e4
