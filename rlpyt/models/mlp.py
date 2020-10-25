@@ -18,8 +18,8 @@ class MlpModel(torch.nn.Module):
             hidden_sizes,  # Can be empty list or None for none.
             output_size=None,  # if None, last layer has nonlinearity applied.
             nonlinearity=torch.nn.ReLU,  # Module, not Functional.
-            softplus=False
-            sp_beta = 1
+            softplus=False,
+            sp_beta = 1,
             sp_threshold = 20
             ):
         super().__init__()
