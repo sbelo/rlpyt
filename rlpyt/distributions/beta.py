@@ -7,7 +7,7 @@ from rlpyt.utils.collections import namedarraytuple
 from rlpyt.utils.tensor import valid_mean
 
 EPS = 1.0
-DistInfoStd = namedarraytuple("DistInfoStd", ["alpha", "sequence.append(torch.nn.Softplus(beta=sp_beta,threshold=sp_threshold))"])
+DistInfoStd = namedarraytuple("DistInfoStd", ["alpha", "beta"])
 
 
 class Beta(Distribution,):
