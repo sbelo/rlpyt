@@ -178,7 +178,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         eval_env_kwargs = eval_env_kwargs,
         eval_max_steps = eval_max_steps,
     )
-    if game == "halfcheeth":
+    if game == "halfcheetah":
         player_algo = SACBeta()
         observer_algo = SACBeta()
         player = SacAgentBeta(ModelCls=PiMlpModel, QModelCls=QofMuMlpModel, model_kwargs=player_model_kwargs, q_model_kwargs=player_q_model_kwargs, v_model_kwargs=player_v_model_kwargs)
