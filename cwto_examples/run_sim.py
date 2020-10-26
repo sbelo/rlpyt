@@ -126,7 +126,7 @@ def build_and_train(game="cartpole", run_ID=0, cuda_idx=None, sample_mode="seria
         player_reward_shaping = None
         observer_reward_shaping = None
         temp_env.close()
-        max_decor_steps = 10
+        max_decor_steps = 0
         b_size = 20
         num_envs = 8
         max_episode_length = np.inf
