@@ -6,7 +6,8 @@ from rlpyt.distributions.base import Distribution
 from rlpyt.utils.collections import namedarraytuple
 from rlpyt.utils.tensor import valid_mean
 
-EPS = 1.0
+EPS_A = 20
+EPS_B = 1.0
 DistInfoStd = namedarraytuple("DistInfoStd", ["alpha", "beta"])
 
 
@@ -41,10 +42,10 @@ class Beta(Distribution,):
         assert False
 
     def entropy(self, dist_info):   
-        return self.dist(dist_info.alpha + EPS,dist_info.beta + EPS).entropy()
+        return self.dist(dist_info.alpha + EPS_A,dist_info.beta + EPS_B).entropy()
 
     def perplexity(self, dist_info):
-        return self.dist(dist_info.alpha + EPS,dist_info.beta + EPS).perplexity()
+        return self.dist(dist_info.alpha + EPS_A,dist_info.beta + EPS_B).perplexity()
 
     def mean_entropy(self, dist_info, valid=None):
         return valid_mean(self.entropy(dist_info), valid)
@@ -53,7 +54,7 @@ class Beta(Distribution,):
         return valid_mean(self.perplexity(dist_info), valid)
 
     def log_likelihood(self, x, dist_info):
-        beta_dist = self.dist(dist_info.alpha + EPS,dist_info.beta + EPS)
+        beta_dist = self.dist(dist_info.alpha + EPS_A,dist_info.beta + EPS_B)
         if not isinstance(x,torch.Tensor):
             x = torch.tensor(x)
         logli = -(torch.sum(beta_dist.log_prob(x), dim=-1))
@@ -65,12 +66,12 @@ class Beta(Distribution,):
         return torch.exp(logli_new - logli_old)
 
     def sample_loglikelihood(self, dist_info):
-        sample = self.dist(dist_info.alpha + EPS,dist_info.beta + EPS).sample()
+        sample = self.dist(dist_info.alpha + EPS_A,dist_info.beta + EPS_B).sample()
         logli = self.log_likelihood(sample, dist_info)
         return sample, logli
 
 
     def sample(self, dist_info):
-        return self.dist(dist_info.alpha + EPS,dist_info.beta + EPS).sample()
+        return self.dist(dist_info.alpha + EPS_A,dist_info.beta + EPS_B).sample()
 
 
