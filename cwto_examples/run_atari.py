@@ -84,9 +84,8 @@ def build_and_train(game="pong", run_ID=0, cuda_idx=None, sample_mode="serial", 
         alt_train=alt_train
     )
     config = dict(domain=game)
-    name = "ppo_" + game
-    log_dir = os.getcwd() + "/cwto_logs/" + name
-    with logger_context(log_dir, run_ID, name, config):
+    log_dir = os.getcwd() + "/cwto_logs/" + game
+    with logger_context(log_dir, run_ID, game, config):
         runner.train()
     if save_models_to_wandb:
         agent.save_models_to_wandb()
