@@ -107,7 +107,7 @@ if __name__ == "__main__":
     parser.add_argument('--train_mask_ply', help='player train', type=bool, default=True)
     parser.add_argument('--train_mask_obs', help='observer train', type=bool, default=True)
     parser.add_argument('--wandb', help='wandb logging', type=bool, default=False)
-    parser.add_argument('--wandb_project', help='wandb project name', type=str, default="choose_what_to_observe_rlpyt")
+    parser.add_argument('--wandb_project', help='wandb project name', type=str, default="choose_what_to_observe_atari")
     parser.add_argument('--wandb_run_name', help='wandb run name', type=str, default=None)
     parser.add_argument('--wandb_group', help='wandb group name', type=str, default=None)
     parser.add_argument('--wandb_save_models', help='save models to wandb', type=bool, default=False)
