@@ -13,8 +13,8 @@ def obs_action_translator(action,window_size,dim_obs):
     trans_action = np.zeros(dim_obs)
     x_inds = np.arange(dim_obs[1])
     y_inds = np.arange(dim_obs[0])
-    x_inds = x_inds[int(max(action[0] - math.floor(window_size[0]/2),0)):min(action[0] + math.ceil(window_size[0] / 2),dim_obs[0])]
-    y_inds = y_inds[int(max(action[1] - math.floor(window_size[1]/2),0)):min(action[1] + math.ceil(window_size[1] / 2),dim_obs[1])]
+    x_inds = x_inds[int(max(math.floor(action[0] - window_size[0]/2),0)):min(math.ceil(action[0] + window_size[0] / 2),dim_obs[0])]
+    y_inds = y_inds[int(max(math.floor(action[1] - window_size[1]/2),0)):min(math.ceil(action[1] + window_size[1] / 2),dim_obs[1])]
     trans_action[:,x_inds,y_inds] = 1
     return trans_action
 
@@ -24,7 +24,10 @@ def reward_shaping_ph(reward):
 
 class CWTO_EnvWrapperAtari(Wrapper):
     def __init__(self,env_name,window_size,force_float32=True,player_reward_shaping=None,observer_reward_shaping=None,max_episode_length=np.inf,add_channel=False):
+        self.serial = False
         env = AtariEnv(game=env_name)
+        env.metadata = None
+        env.reward_range = None
         super().__init__(env)
         o = self.env.reset()
         self.max_episode_length = max_episode_length
