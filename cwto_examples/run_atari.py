@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument('--log_interval_steps', help='interval between logs', type=int, default=1e5)
     parser.add_argument('--alt_train', help='each time only one agent optimized', type=bool, default=False)
     parser.add_argument('--n_steps', help='number of optimization steps to run', type=int, default=50e6)
-    parser.add_argument('--max_episode_len', help='maximal episode length', type=int, default=int(np.inf))
+    parser.add_argument('--max_episode_len', help='maximal episode length', type=float, default=np.inf)
     parser.add_argument('--b_size', help='batch size', type=int, default=5)
     parser.add_argument('--max_decor', help='maximal number of decorrelation steps', type=int, default=10)
     args = parser.parse_args()
