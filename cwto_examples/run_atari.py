@@ -12,7 +12,7 @@ from rlpyt.algos.pg.a2c import A2C
 from rlpyt.algos.qpg.sac import SAC
 from rlpyt.agents.pg.atari import AtariLstmAgent
 
-def build_and_train(game="pong", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, num_envs=2, eval=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, alt_train=False, n_steps=50e6,max_episode_length=np.inf,b_size=5,max_decor_steps=10):
+def build_and_train(windx,windy,game="pong", run_ID=0, cuda_idx=None, sample_mode="serial", n_parallel=2, num_envs=2, eval=False, train_mask=[True,True],wandb_log=False,save_models_to_wandb=False, log_interval_steps=1e5, alt_train=False, n_steps=50e6,max_episode_length=np.inf,b_size=5,max_decor_steps=10):
     # def envs:
     # player_model_kwargs = dict(hidden_sizes=[32], lstm_size=16, nonlinearity=torch.nn.ReLU, normalize_observation=False,
     #                            norm_obs_clip=10, norm_obs_var_clip=1e-6)
@@ -20,6 +20,7 @@ def build_and_train(game="pong", run_ID=0, cuda_idx=None, sample_mode="serial", 
     #                              normalize_observation=False, norm_obs_clip=10, norm_obs_var_clip=1e-6)
     player_reward_shaping = None
     observer_reward_shaping = None
+    window_size = np.asarray([windx,windy])
 
     affinity = dict(cuda_idx=cuda_idx, workers_cpus=list(range(n_parallel)))
     gpu_cpu = "CPU" if cuda_idx is None else f"GPU {cuda_idx}"
@@ -39,7 +40,7 @@ def build_and_train(game="pong", run_ID=0, cuda_idx=None, sample_mode="serial", 
         else:
             eval_collector_cl = None
         print(f"Using CPU parallel sampler (agent in workers), {gpu_cpu} for optimizing.")
-    env_kwargs = dict(env_name=game,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,max_episode_length=max_episode_length)
+    env_kwargs = dict(env_name=game,window_size=window_size,player_reward_shaping=player_reward_shaping,observer_reward_shaping=observer_reward_shaping,max_episode_length=max_episode_length)
     if eval:
         eval_env_kwargs = env_kwargs
         eval_max_steps = 1e4
@@ -117,6 +118,8 @@ if __name__ == "__main__":
     parser.add_argument('--max_episode_len', help='maximal episode length', type=float, default=np.inf)
     parser.add_argument('--b_size', help='batch size', type=int, default=5)
     parser.add_argument('--max_decor', help='maximal number of decorrelation steps', type=int, default=10)
+    parser.add_argument('--windx', help='x axis size of window', type=int)
+    parser.add_argument('--windy', help='y axis size of window', type=int)
     args = parser.parse_args()
     if args.wandb:
         wandb.init(project=args.wandb_project,group=args.wandb_group,name=args.wandb_run_name)
@@ -128,6 +131,8 @@ if __name__ == "__main__":
         cuda_idxs = args.cuda_idx
 
     build_and_train(
+        windx=args.windx,
+        windy=args.windy,
         game=args.game,
         run_ID=args.run_ID,
         cuda_idx=cuda_idxs,
