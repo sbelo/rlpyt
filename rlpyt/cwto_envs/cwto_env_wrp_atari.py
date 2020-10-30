@@ -99,9 +99,9 @@ class CWTO_EnvWrapperAtari(Wrapper):
                     info["timeout"] = info.pop("TimeLimit.truncated")
                 else:
                     info["timeout"] = False
-
-            self.last_info = (info["timeout"])
-            info = (False)
+            
+            self.last_info = info #(info["timeout"])
+#             info = (False)
             if isinstance(r, float):
                 r = np.dtype("float32").type(r)  # Scalar float32.
             self.last_reward = r
