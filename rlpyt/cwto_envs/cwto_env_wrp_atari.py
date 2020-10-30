@@ -115,7 +115,7 @@ class CWTO_EnvWrapperAtari(Wrapper):
 
         else:
             r_action = self.observer_action_space.revert(action)
-            r_action = self.obs_action_translator(r_action, self.window_size, self.obs_size[1:])
+            r_action = self.obs_action_translator(r_action, self.window_size, self.obs_size)
             self.player_turn = True
             self.last_obs_act = r_action
             masked_obs = np.multiply(r_action, self.last_obs)
