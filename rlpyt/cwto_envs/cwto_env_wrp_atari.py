@@ -6,6 +6,7 @@ from rlpyt.spaces.int_box import IntBox
 from gym.spaces.box import Box
 import random
 import math
+import numpy as np
 from rlpyt.envs.atari.atari_env import AtariEnv, AtariTrajInfo
 
 def obs_action_translator(action,window_size,dim_obs):
