@@ -12,9 +12,11 @@ from rlpyt.envs.atari.atari_env import AtariEnv, AtariTrajInfo
 def obs_action_translator(action,window_size,dim_obs):
     trans_action = np.zeros(dim_obs)
     x_inds = np.arange(dim_obs[1])
-    y_inds = np.arange(dim_obs[0])
-    x_inds = x_inds[int(max(math.floor(action[0] - window_size[0]/2),0)):min(math.ceil(action[0] + window_size[0] / 2),dim_obs[0])]
-    y_inds = y_inds[int(max(math.floor(action[1] - window_size[1]/2),0)):min(math.ceil(action[1] + window_size[1] / 2),dim_obs[1])]
+    y_inds = np.arange(dim_obs[2])
+    x_low = int(min(max(math.floor(action[0] - window_size[0]/2),0),dim_obs[1] - window_size[0]))
+    y_low = int(min(max(math.floor(action[1] - window_size[1]/2),0),dim_obs[2] - window_size[1]))
+    x_inds = x_inds[x_low:x_low + window_size[0]]
+    y_inds = y_inds[y_low:y_low + window_size[1]]
     trans_action[:,x_inds,y_inds] = 1
     return trans_action
 
@@ -113,7 +115,7 @@ class CWTO_EnvWrapperAtari(Wrapper):
 
         else:
             r_action = self.observer_action_space.revert(action)
-            r_action = self.obs_action_translator(r_action, self.window_size, self.obs_size)
+            r_action = self.obs_action_translator(r_action, self.window_size, self.obs_size[1:])
             self.player_turn = True
             self.last_obs_act = r_action
             masked_obs = np.multiply(r_action, self.last_obs)
