@@ -12,8 +12,8 @@ def obs_action_translator(action,window_size,dim_obs):
     trans_action = np.zeros(dim_obs)
     x_inds = np.arange(dim_obs[1])
     y_inds = np.arange(dim_obs[0])
-    x_inds = x_inds[int(max(action[0] - math.floor(window_size[0]/2),0):min(action[0] + math.ceil(window_size[0] / 2),dim_obs[0]))]
-    y_inds = y_inds[int(max(action[1] - math.floor(window_size[1]/2),0):min(action[1] + math.ceil(window_size[1] / 2),dim_obs[1]))]
+    x_inds = x_inds[int(max(action[0] - math.floor(window_size[0]/2),0)):min(action[0] + math.ceil(window_size[0] / 2),dim_obs[0])]
+    y_inds = y_inds[int(max(action[1] - math.floor(window_size[1]/2),0)):min(action[1] + math.ceil(window_size[1] / 2),dim_obs[1])]
     trans_action[:,x_inds,y_inds] = 1
     return trans_action
 
