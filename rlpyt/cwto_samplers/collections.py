@@ -66,7 +66,7 @@ class TrajInfo(AttrDict):
         self._cur_discount *= self._discount
         self.TotalCost += cost
         if obs_act is not None:
-            assert np.array_equal(obs_act[0],obs_act[1]) and np.array_equal(obs_act[2],obs_act[3]) and np.array_equal(obs_act[0],obs_act[2])
+#             assert np.array_equal(obs_act[0],obs_act[1]) and np.array_equal(obs_act[2],obs_act[3]) and np.array_equal(obs_act[0],obs_act[2])
             if self._atari:
                 self.ObsMap += obs_act[0]
             else:
