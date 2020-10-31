@@ -17,7 +17,13 @@ def obs_action_translator(action,window_size,dim_obs):
     y_low = int(min(max(math.floor(action[1] - window_size[1]/2),0),dim_obs[2] - window_size[1]))
     x_inds = x_inds[x_low:x_low + window_size[0]]
     y_inds = y_inds[y_low:y_low + window_size[1]]
-    trans_action[:,x_inds,y_inds] = 1
+    x_inds_bool = np.zeros([dim_obs[1],dim_obs[2]],dtype=bool)
+    x_inds_bool[x_inds,:] = True
+    y_inds_bool = np.zeros([dim_obs[1],dim_obs[2]],dtype=bool)
+    y_inds_bool[:,y_inds] = True
+    ind_xy = np.bitwise_and(x_inds_bool,y_inds_bool)
+    trans_action[np.stack([ind_xy for _ in range(dim_obs[0])],axis=0)] = 1
+#     trans_action[:,x_inds,y_inds] = 1
     return trans_action
 
 def reward_shaping_ph(reward,obs_act):
