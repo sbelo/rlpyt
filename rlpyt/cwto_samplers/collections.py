@@ -47,7 +47,7 @@ class TrajInfo(AttrDict):
         self.TotalCost = 0
         self._atari = False
         if n_obs is not None:
-            if isinstance(n_obs,iterable):
+            if hasattr(n_obs,'__iter__'):
                 self._atari = True
                 self._window_size = n_obs
                 self._null_flag = True
