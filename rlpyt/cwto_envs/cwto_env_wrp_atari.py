@@ -159,6 +159,6 @@ class CWTO_EnvWrapperAtari(Wrapper):
         else:
             return self.observer_observation_space
     
-    def seed(seed=0):
+    def seed(seed1=0,seed2=0):
         return
 
