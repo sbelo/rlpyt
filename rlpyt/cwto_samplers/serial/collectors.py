@@ -2,6 +2,7 @@
 import numpy as np
 
 from rlpyt.cwto_samplers.collectors import BaseEvalCollector
+from rlpyt.cwto_envs.cwto_env_wrp_atari import CWTO_EnvWrapperAtari
 from rlpyt.agents.base import AgentInputs
 from rlpyt.utils.buffer import buffer_from_example, torchify_buffer, numpify_buffer
 from rlpyt.utils.logging import logger
@@ -26,7 +27,10 @@ class SerialEvalCollector(BaseEvalCollector):
 
     def collect_evaluation(self, itr):
         player_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
-        observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
+        if isinstance(self.envs[0],CWTO_EnvWrapperAtari):
+            observer_traj_infos = [self.TrajInfoCls(n_obs=env.window_size, serial=env.serial) for env in self.envs]
+        else:
+            observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
         player_completed_traj_infos = list()
         observer_completed_traj_infos = list()
         observer_observations = list()
