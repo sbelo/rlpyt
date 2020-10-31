@@ -158,4 +158,7 @@ class CWTO_EnvWrapperAtari(Wrapper):
             return self.player_observation_space
         else:
             return self.observer_observation_space
+    
+    def seed(seed=0):
+        return
 
