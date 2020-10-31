@@ -47,8 +47,10 @@ class TrajInfo(AttrDict):
         self.TotalCost = 0
         if n_obs is not None:
             if isinstance(n_obs,tuple):
-                print(n_obs)
+                self._atari = True
+                self.ObsMap = np.zeros([n_obs[1],n_obs[2]])
             else:
+                self._atari = False
                 self._serial = serial
                 self._n_obs = n_obs
                 for i in range(n_obs):
@@ -64,9 +66,12 @@ class TrajInfo(AttrDict):
         self._cur_discount *= self._discount
         self.TotalCost += cost
         if obs_act is not None:
-            self.OverAllObsPercent += np.sum(obs_act) / self._n_obs
-            for i in range(self._n_obs):
-                setattr(self,"ObsPercentFeature" + str(i+1),getattr(self,"ObsPercentFeature" + str(i+1)) + obs_act[i])
+            if self._atari:
+                self.ObsMap[int(obs_act[0]),int(obs_act[1])] += 1
+            else:
+                self.OverAllObsPercent += np.sum(obs_act) / self._n_obs
+                for i in range(self._n_obs):
+                    setattr(self,"ObsPercentFeature" + str(i+1),getattr(self,"ObsPercentFeature" + str(i+1)) + obs_act[i])
 
     def terminate(self, observation):
         if hasattr(self,"OverAllObsPercent"):
@@ -77,6 +82,8 @@ class TrajInfo(AttrDict):
             self.OverAllObsPercent = 100*self.OverAllObsPercent / length
             for i in range(self._n_obs):
                 setattr(self, "ObsPercentFeature" + str(i + 1), 100*getattr(self, "ObsPercentFeature" + str(i + 1)) / length)
+        elif self._atari:
+            self.ObsMap = (1.0/np.sum(self.ObsMap)) * self.ObsMap
         return self
         
 class TrajInfo_obs(TrajInfo):
