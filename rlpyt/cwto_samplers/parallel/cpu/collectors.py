@@ -3,6 +3,7 @@ import numpy as np
 
 from rlpyt.cwto_samplers.collectors import (DecorrelatingStartCollector,
     BaseEvalCollector)
+from rlpyt.cwto_envs.cwto_env_wrp_atari import CWTO_EnvWrapperAtari
 from rlpyt.agents.base import AgentInputs
 from rlpyt.utils.buffer import (torchify_buffer, numpify_buffer, buffer_from_example,
     buffer_method)
@@ -164,7 +165,10 @@ class CpuEvalCollector(BaseEvalCollector):
     """
 
     def collect_evaluation(self, itr):
-        observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
+        if isinstance(self.envs[0],CWTO_EnvWrapperAtari):
+            observer_traj_infos = [self.TrajInfoCls(n_obs=env.window_size, serial=env.serial) for env in self.envs]
+        else:
+            observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
         player_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
         observer_observations = list()
         player_observations = list()
