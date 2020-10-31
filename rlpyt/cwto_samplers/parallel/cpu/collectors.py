@@ -71,7 +71,10 @@ class CpuResetCollector(DecorrelatingStartCollector):
                                                 observer_agent_info[b], env_info, cost=cost_obs, obs_act=env.last_obs_act)
                     if getattr(env_info, "traj_done", d):
                         observer_completed_infos.append(observer_traj_infos[b].terminate(o))
-                        observer_traj_infos[b] = self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial)
+                        if isinstance(self.envs[0],CWTO_EnvWrapperAtari):
+                            observer_traj_infos[b] = self.TrajInfoCls(n_obs=env.window_size, serial=env.serial)
+                        else:
+                            observer_traj_infos[b] = self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial)
                         # if env.player_reward_shaping is not None:
                         r_ply, cost_ply = env.player_reward_shaping(r, env.last_obs_act)
                         # else:
