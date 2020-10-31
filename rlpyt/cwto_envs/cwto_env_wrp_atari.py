@@ -20,7 +20,7 @@ def obs_action_translator(action,window_size,dim_obs):
     trans_action[:,x_inds,y_inds] = 1
     return trans_action
 
-def reward_shaping_ph(reward):
+def reward_shaping_ph(reward,obs_act):
     return reward, 0
 
 
