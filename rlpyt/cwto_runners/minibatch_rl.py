@@ -338,8 +338,6 @@ class MinibatchRlBase(BaseRunner):
             if key == "ObserverObsMap":
                 if len(value) > 0:
                     log_dict[key + "Average"] = np.average(value,axis=0)
-                    print(log_dict[key + "Average"].shape)
-                    print(value.shape)
                     log_dict[key + "Std"] = np.std(value,axis=0)
                     log_dict[key + "Median"] = np.median(value,axis=0)
                     log_dict[key + "Min"] = np.min(value,axis=0)
