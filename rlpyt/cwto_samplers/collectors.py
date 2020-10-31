@@ -5,6 +5,7 @@ from rlpyt.agents.base import AgentInputs
 from rlpyt.utils.buffer import buffer_from_example, torchify_buffer, numpify_buffer
 from rlpyt.utils.logging import logger
 from rlpyt.utils.quick_args import save__init__args
+from rlpyt.cwto_envs.cwto_env_wrp_atari import CWTO_EnvWrapperAtari
 
 
 class BaseCollector:
@@ -90,7 +91,10 @@ class DecorrelatingStartCollector(BaseCollector):
         resulting agent_inputs buffer (`observation`, `prev_action`,
         `prev_reward`)."""
         player_traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
-        observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
+        if isinstance(self.envs[0],CWTO_EnvWrapperAtari):
+            observer_traj_infos = [self.TrajInfoCls(n_obs=env.window_size, serial=env.serial) for env in self.envs]
+        else:
+            observer_traj_infos = [self.TrajInfoCls(n_obs=env.obs_size, serial=env.serial) for env in self.envs]
         player_observations = list()
         observer_observations = list()
         for env in self.envs:
