@@ -67,7 +67,7 @@ class TrajInfo(AttrDict):
         self.TotalCost += cost
         if obs_act is not None:
             if self._atari:
-                self.ObsMap[int(obs_act[0]),int(obs_act[1])] += 1
+                self.ObsMap += obs_act[0]
             else:
                 self.OverAllObsPercent += np.sum(obs_act) / self._n_obs
                 for i in range(self._n_obs):
