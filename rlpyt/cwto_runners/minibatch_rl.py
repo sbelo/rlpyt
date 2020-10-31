@@ -335,7 +335,7 @@ class MinibatchRlBase(BaseRunner):
                 raw_log_dict["Observer" + k] = np.asarray(v)
         log_dict = dict()
         for key, value in raw_log_dict.items():
-            if key == "ObsMap":
+            if key == "ObserverObsMap":
                 if len(value) > 0:
                     log_dict[key + "Average"] = np.average(value,axis=0)
                     print(log_dict[key + "Average"].shape)
