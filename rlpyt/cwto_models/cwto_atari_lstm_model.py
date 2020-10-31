@@ -37,8 +37,9 @@ class CWTO_AtariLstmModel(torch.nn.Module):
             use_maxpool=use_maxpool,
             hidden_sizes=fc_sizes,  # Applies nonlinearity at end.
         )
+        self._output_size = output_size
         self.lstm = torch.nn.LSTM(self.conv.output_size + output_size + 1, lstm_size)
-        self.pi = torch.nn.Linear(lstm_size, output_size)
+        self.pi = torch.nn.Linear(lstm_size, output_size * 2)
         self.value = torch.nn.Linear(lstm_size, 1)
 
     def forward(self, image, prev_action, prev_reward, init_rnn_state):
@@ -67,11 +68,13 @@ class CWTO_AtariLstmModel(torch.nn.Module):
         init_rnn_state = None if init_rnn_state is None else tuple(init_rnn_state)
         lstm_out, (hn, cn) = self.lstm(lstm_input, init_rnn_state)
         pi = self.pi(lstm_out.view(T * B, -1))
+        mu = pi[:,:self._output_size]
+        log_std= pi[:,self._output_size:-1]
         v = self.value(lstm_out.view(T * B, -1)).squeeze(-1)
 
         # Restore leading dimensions: [T,B], [B], or [], as input.
-        pi, v = restore_leading_dims((pi, v), lead_dim, T, B)
+        mu, log_std, v = restore_leading_dims((mu,log_std, v), lead_dim, T, B)
         # Model should always leave B-dimension in rnn state: [N,B,H].
         next_rnn_state = RnnState(h=hn, c=cn)
 
-        return pi, v, next_rnn_state
+        return mu, log_std, v, next_rnn_state

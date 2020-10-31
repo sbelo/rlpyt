@@ -33,7 +33,8 @@ class CWTO_AtariFfModel(torch.nn.Module):
             use_maxpool=use_maxpool,
             hidden_sizes=fc_sizes,  # Applies nonlinearity at end.
         )
-        self.pi = torch.nn.Linear(self.conv.output_size, output_size)
+        self._output_size = output_size
+        self.pi = torch.nn.Linear(self.conv.output_size, output_size*2)
         self.value = torch.nn.Linear(self.conv.output_size, 1)
 
     def forward(self, image, prev_action, prev_reward):
@@ -54,9 +55,11 @@ class CWTO_AtariFfModel(torch.nn.Module):
 
         fc_out = self.conv(img.view(T * B, *img_shape))
         pi = self.pi(fc_out)
+        mu = pi[:,:self._output_size]
+        log_std = pi[:,self._output_size:-1]
         v = self.value(fc_out).squeeze(-1)
 
         # Restore leading dimensions: [T,B], [B], or [], as input.
-        pi, v = restore_leading_dims((pi, v), lead_dim, T, B)
+        mu, log_std, v = restore_leading_dims((mu,log_std, v), lead_dim, T, B)
 
-        return pi, v
+        return mu, log_std, v
