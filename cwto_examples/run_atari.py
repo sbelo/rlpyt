@@ -63,7 +63,7 @@ def build_and_train(windx,windy,game="pong", run_ID=0, cuda_idx=None, sample_mod
 
 
     player_algo = A2C()
-    observer_algo = SAC()
+    observer_algo = A2C()
     player = AtariLstmAgent() #model_kwargs=player_model_kwargs)
     observer = CWTO_AtariLstmAgent() #model_kwargs=observer_model_kwargs)
     agent = CWTO_AgentWrapper(player,observer,alt=alt, train_mask=train_mask)
