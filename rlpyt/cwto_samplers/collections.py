@@ -70,8 +70,8 @@ class TrajInfo(AttrDict):
 #             assert np.array_equal(obs_act[0],obs_act[1]) and np.array_equal(obs_act[2],obs_act[3]) and np.array_equal(obs_act[0],obs_act[2])
             if self._atari:
                 if self._null_flag:
-                    x_res = np.ceil(observation.shape[1] / self._window_size[0])
-                    y_res = np.ceil(observation.shape[2] / self._window_size[1])
+                    x_res = int(np.ceil(observation.shape[1] / self._window_size[0]))
+                    y_res = int(np.ceil(observation.shape[2] / self._window_size[1]))
                     self._masks = np.zeros([x_res,y_res,observation.shape[1],observation.shape[2]],dtype=bool)
                     zeromask = np.zeros([observation.shape[1],observation.shape[2]],dtype=bool)
                     for i in range(x_res):
