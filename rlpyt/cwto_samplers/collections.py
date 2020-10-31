@@ -46,11 +46,14 @@ class TrajInfo(AttrDict):
         self._cur_discount = 1
         self.TotalCost = 0
         if n_obs is not None:
-            self._serial = serial
-            self._n_obs = n_obs
-            for i in range(n_obs):
-                setattr(self,"ObsPercentFeature" + str(i+1),0)
-            self.OverAllObsPercent = 0
+            if isinstance(n_obs,tuple):
+                print(n_obs)
+            else:
+                self._serial = serial
+                self._n_obs = n_obs
+                for i in range(n_obs):
+                    setattr(self,"ObsPercentFeature" + str(i+1),0)
+                self.OverAllObsPercent = 0
 
 
     def step(self, observation, action, reward, done, agent_info, env_info, cost=0, obs_act=None):
