@@ -45,12 +45,12 @@ class TrajInfo(AttrDict):
         self.DiscountedReturn = 0
         self._cur_discount = 1
         self.TotalCost = 0
+        self._atari = False
         if n_obs is not None:
             if isinstance(n_obs,tuple):
                 self._atari = True
                 self.ObsMap = np.zeros([n_obs[1],n_obs[2]])
             else:
-                self._atari = False
                 self._serial = serial
                 self._n_obs = n_obs
                 for i in range(n_obs):
