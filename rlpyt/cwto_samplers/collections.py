@@ -47,9 +47,10 @@ class TrajInfo(AttrDict):
         self.TotalCost = 0
         self._atari = False
         if n_obs is not None:
-            if isinstance(n_obs,tuple):
+            if isinstance(n_obs,iterable):
                 self._atari = True
-                self.ObsMap = np.zeros([n_obs[1],n_obs[2]])
+                self._window_size = n_obs
+                self._null_flag = True
             else:
                 self._serial = serial
                 self._n_obs = n_obs
@@ -68,7 +69,28 @@ class TrajInfo(AttrDict):
         if obs_act is not None:
 #             assert np.array_equal(obs_act[0],obs_act[1]) and np.array_equal(obs_act[2],obs_act[3]) and np.array_equal(obs_act[0],obs_act[2])
             if self._atari:
-                self.ObsMap += obs_act[0]
+                if self._null_flag:
+                    x_res = np.ceil(observation.shape[1] / self._window_size[0])
+                    y_res = np.ceil(observation.shape[2] / self._window_size[1])
+                    self._masks = np.zeros([x_res,y_res,observation.shape[1],observation.shape[2]],dtype=bool)
+                    zeromask = np.zeros([observation.shape[1],observation.shape[2]],dtype=bool)
+                    for i in range(x_res):
+                        xmask = zeromask.copy()
+                        if i == x_res - 1:
+                            xmask[i*self._window_size[0]:-1,:] = True
+                        else:
+                            xmask[i*self._window_size[0]:(i+1)*self._window_size[0],:] = True
+                        for j in range(y_res):
+                            ymask = zeromask.copy()
+                            if j == y_res - 1:
+                                ymask[j*self._window_size[1]:-1,:] = True
+                            else:
+                                ymask[j*self._window_size[1]:(j+1)*self._window_size[1],:] = True
+                            self._masks[i,j] = np.bitwise_and(xmask,ymask)
+                            setattr(self,"ObsMap" + str(i) + "x" + str(j),0)
+                for i in range(self._masks.shape[0]):
+                    for j in range(self._masks.shape[1]):
+                        setattr(self,"ObsMap" + str(i) + "x" + str(j),getattr(self,"ObsMap" + str(i) + "x" + str(j)) + np.sum(obs_act[0][self._masks[i,j]]))
             else:
                 self.OverAllObsPercent += np.sum(obs_act) / self._n_obs
                 for i in range(self._n_obs):
@@ -84,7 +106,13 @@ class TrajInfo(AttrDict):
             for i in range(self._n_obs):
                 setattr(self, "ObsPercentFeature" + str(i + 1), 100*getattr(self, "ObsPercentFeature" + str(i + 1)) / length)
         elif self._atari:
-            self.ObsMap = (1.0/np.sum(self.ObsMap)) * self.ObsMap
+            tot_sum = 0
+            for i in range(self._masks.shape[0]):
+                for j in range(self._masks.shape[1]):
+                    tot_sum += getattr(self,"ObsMap" + str(i) + "x" + str(j))
+            for i in range(self._masks.shape[0]):
+                for j in range(self._masks.shape[1]):
+                    setattr(self,"ObsMap" + str(i) + "x" + str(j),(1.0/tot_sum) * getattr(self,"ObsMap" + str(i) + "x" + str(j)))
         return self
         
 class TrajInfo_obs(TrajInfo):
