@@ -83,7 +83,7 @@ class CWTO_EnvWrapperAtari(Wrapper):
 
         self.player_action_space = GymSpaceWrapper(space=player_act_space,name="act",null_value=player_act_space.null_value(),force_float32=force_float32)
         self.observer_action_space = GymSpaceWrapper(space=observer_act_space,name="act",null_value=np.zeros(2),force_float32=force_float32)
-        self.player_observation_space = GymSpaceWrapper(space=player_obs_space,name="obs",null_value=player_obs_space.null_value,force_float32=force_float32)
+        self.player_observation_space = GymSpaceWrapper(space=player_obs_space,name="obs",null_value=player_obs_space.null_value(),force_float32=force_float32)
         self.observer_observation_space = GymSpaceWrapper(space=observer_obs_space,name="obs",null_value=observer_obs_space.null_value(),force_float32=force_float32)
 
     def step(self,action):
