@@ -281,14 +281,14 @@ class MinibatchRlBase(BaseRunner):
             player_traj_infos = self._player_traj_infos
         if player_traj_infos:
             for k in player_traj_infos[0]:
-                if not k.startswith("_"):
+                if (not k.startswith("_")) and k != "ObsMap":
                     logger.record_tabular_misc_stat("Player" + k, [info[k] for info in player_traj_infos])
 
         if observer_traj_infos is None:
             observer_traj_infos = self._observer_traj_infos
         if observer_traj_infos:
             for k in observer_traj_infos[0]:
-                if not k.startswith("_"):
+                if (not k.startswith("_")) and k != "ObsMap":
                     logger.record_tabular_misc_stat("Observer" + k, [info[k] for info in observer_traj_infos])
 
         if self._player_opt_infos:
@@ -313,12 +313,18 @@ class MinibatchRlBase(BaseRunner):
         if player_traj_infos:
             for k in player_traj_infos[0]:
                 if not k.startswith("_"):
-                    raw_log_dict["Player" + k] = np.asarray([info[k] for info in player_traj_infos])
+                    if k == "ObsMap":
+                        raw_log_dict["Player" + k] = np.stack([info[k] for info in player_traj_infos],axis=0)
+                    else:
+                        raw_log_dict["Player" + k] = np.asarray([info[k] for info in player_traj_infos])
 
         if observer_traj_infos:
             for k in observer_traj_infos[0]:
                 if not k.startswith("_"):
-                    raw_log_dict["Observer" + k] = np.asarray([info[k] for info in observer_traj_infos])
+                    if k == "ObsMap":
+                        raw_log_dict["Observer" + k] = np.stack([info[k] for info in observer_traj_infos],axis=0)
+                    else:
+                        raw_log_dict["Observer" + k] = np.asarray([info[k] for info in observer_traj_infos])
 
         if self._player_opt_infos:
             for k, v in self._player_opt_infos.items():
@@ -329,18 +335,32 @@ class MinibatchRlBase(BaseRunner):
                 raw_log_dict["Observer" + k] = np.asarray(v)
         log_dict = dict()
         for key, value in raw_log_dict.items():
-            if len(value) > 0:
-                log_dict[key + "Average"] = np.average(value)
-                log_dict[key + "Std"] = np.std(value)
-                log_dict[key + "Median"] = np.median(value)
-                log_dict[key + "Min"] = np.min(value)
-                log_dict[key + "Max"] = np.max(value)
+            if key == "ObsMap":
+                if len(value) > 0:
+                    log_dict[key + "Average"] = np.a(value,axis=0)
+                    log_dict[key + "Std"] = np.std(value,axis=0)
+                    log_dict[key + "Median"] = np.median(value,axis=0)
+                    log_dict[key + "Min"] = np.min(value,axis=0)
+                    log_dict[key + "Max"] = np.max(value,axis=0)
+                else:
+                    log_dict[key + "Average"] = np.nan
+                    log_dict[key + "Std"] = np.nan
+                    log_dict[key + "Median"] = np.nan
+                    log_dict[key + "Min"] = np.nan
+                    log_dict[key + "Max"] = np.nan
             else:
-                log_dict[key + "Average"] = np.nan
-                log_dict[key + "Std"] = np.nan
-                log_dict[key + "Median"] = np.nan
-                log_dict[key + "Min"] = np.nan
-                log_dict[key + "Max"] = np.nan
+                if len(value) > 0:
+                    log_dict[key + "Average"] = np.average(value)
+                    log_dict[key + "Std"] = np.std(value)
+                    log_dict[key + "Median"] = np.median(value)
+                    log_dict[key + "Min"] = np.min(value)
+                    log_dict[key + "Max"] = np.max(value)
+                else:
+                    log_dict[key + "Average"] = np.nan
+                    log_dict[key + "Std"] = np.nan
+                    log_dict[key + "Median"] = np.nan
+                    log_dict[key + "Min"] = np.nan
+                    log_dict[key + "Max"] = np.nan
         wandb.log(log_dict,step=itr)
 
 class MinibatchRl(MinibatchRlBase):
